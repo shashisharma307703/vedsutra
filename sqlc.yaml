@@ -11,11 +11,17 @@ sql:
         emit_json_tags: true
         emit_interface: true
         emit_pointers_for_null_types: true
+        emit_prepared_queries: false
+        emit_empty_slices: true
         overrides:
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
           - db_type: "pg_catalog.uuid"
             go_type: "github.com/google/uuid.UUID"
+          - column: "students.blood_group"
+            go_type: "github.com/shashisharma307703/vedantam/db/types.BloodGroup"
+          - column: "drivers.blood_group"
+            go_type: "github.com/shashisharma307703/vedantam/db/types.BloodGroup"      
           - column: "organizations.established_date"
             go_type: "github.com/shashisharma307703/vedantam/db/types.CustomDate"
           - column: "organizations.license_expiry"

@@ -10,6 +10,7 @@ import (
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/shashisharma307703/vedantam/db/dbgen"
 )
 
@@ -20,7 +21,7 @@ type Logger interface {
 }
 
 type Loader struct {
-	pool       interface{} // Use empty interface, but we know it's pgx.Tx capable
+	pool       *pgxpool.Pool
 	queries    *dbgen.Queries
 	upsert     bool
 	dryRun     bool
@@ -28,7 +29,7 @@ type Loader struct {
 	processors map[string]TableProcessor
 }
 
-func NewLoader(pool interface{}, queries *dbgen.Queries, upsert, dryRun bool, logger Logger) *Loader {
+func NewLoader(pool *pgxpool.Pool, queries *dbgen.Queries, upsert, dryRun bool, logger Logger) *Loader {
 	return &Loader{
 		pool:       pool,
 		queries:    queries,
@@ -51,11 +52,7 @@ func NewLoader(pool interface{}, queries *dbgen.Queries, upsert, dryRun bool, lo
 
 // LoadAllFromDirectory reads each table from individual files (CSV or JSON) in a directory.
 func (l *Loader) LoadAllFromDirectory(ctx context.Context, tenantID uuid.UUID, dataDir string) error {
-	txer, ok := l.pool.(interface{ BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error) })
-	if !ok {
-		return fmt.Errorf("pool does not support transactions")
-	}
-	tx, err := txer.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := l.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}
@@ -114,11 +111,7 @@ func (l *Loader) LoadAllFromJSONBundle(ctx context.Context, tenantID uuid.UUID, 
 		return err
 	}
 
-	txer, ok := l.pool.(interface{ BeginTx(context.Context, pgx.TxOptions) (pgx.Tx, error) })
-	if !ok {
-		return fmt.Errorf("pool does not support transactions")
-	}
-	tx, err := txer.BeginTx(ctx, pgx.TxOptions{})
+	tx, err := l.pool.BeginTx(ctx, pgx.TxOptions{})
 	if err != nil {
 		return err
 	}

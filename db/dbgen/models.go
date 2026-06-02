@@ -11,6 +11,7 @@ import (
 
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/shashisharma307703/vedantam/db/types"
 )
 
 type AlertType string
@@ -290,15 +291,15 @@ func (ns NullBillingPeriod) Value() (driver.Value, error) {
 type BloodGroupType string
 
 const (
-	BloodGroupTypeAPlus   BloodGroupType = "APlus"
-	BloodGroupTypeAMinus  BloodGroupType = "AMinus"
-	BloodGroupTypeBPlus   BloodGroupType = "BPlus"
-	BloodGroupTypeBMinus  BloodGroupType = "BMinus"
-	BloodGroupTypeABPlus  BloodGroupType = "ABPlus"
-	BloodGroupTypeABMinus BloodGroupType = "ABMinus"
-	BloodGroupTypeOPlus   BloodGroupType = "OPlus"
-	BloodGroupTypeOMinus  BloodGroupType = "OMinus"
-	BloodGroupTypeUnknown BloodGroupType = "unknown"
+	BloodGroupTypeAPOSITIVE  BloodGroupType = "A_POSITIVE"
+	BloodGroupTypeANEGATIVE  BloodGroupType = "A_NEGATIVE"
+	BloodGroupTypeBPOSITIVE  BloodGroupType = "B_POSITIVE"
+	BloodGroupTypeBNEGATIVE  BloodGroupType = "B_NEGATIVE"
+	BloodGroupTypeABPOSITIVE BloodGroupType = "AB_POSITIVE"
+	BloodGroupTypeABNEGATIVE BloodGroupType = "AB_NEGATIVE"
+	BloodGroupTypeOPOSITIVE  BloodGroupType = "O_POSITIVE"
+	BloodGroupTypeONEGATIVE  BloodGroupType = "O_NEGATIVE"
+	BloodGroupTypeUNKNOWN    BloodGroupType = "UNKNOWN"
 )
 
 func (e *BloodGroupType) Scan(src interface{}) error {
@@ -1870,7 +1871,7 @@ type Driver struct {
 	AlternatePhone *string            `json:"alternate_phone"`
 	Address        *string            `json:"address"`
 	DateOfBirth    pgtype.Date        `json:"date_of_birth"`
-	BloodGroup     *BloodGroupType    `json:"blood_group"`
+	BloodGroup     types.BloodGroup   `json:"blood_group"`
 	PhotoUrl       *string            `json:"photo_url"`
 	HireDate       pgtype.Date        `json:"hire_date"`
 	IsActive       bool               `json:"is_active"`
@@ -2838,7 +2839,7 @@ type Student struct {
 	LastName        *string            `json:"last_name"`
 	DateOfBirth     pgtype.Date        `json:"date_of_birth"`
 	Gender          GenderType         `json:"gender"`
-	BloodGroup      *BloodGroupType    `json:"blood_group"`
+	BloodGroup      types.BloodGroup   `json:"blood_group"`
 	Religion        *string            `json:"religion"`
 	Caste           *string            `json:"caste"`
 	Nationality     *string            `json:"nationality"`
