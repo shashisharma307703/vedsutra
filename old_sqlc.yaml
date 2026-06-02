@@ -1,0 +1,22 @@
+version: "2"
+sql:
+  - engine: "postgresql" 
+    schema: "db/schema.sql" # Ensure this matches your actual SQL file name
+    queries: "db/queries/"
+    gen:
+      go:
+        package: "dbgen"
+        out: "db/dbgen"
+        sql_package: "pgx/v5"
+        emit_json_tags: true
+        emit_interface: true
+        overrides:
+          - db_type: "uuid"
+            go_type: "github.com/google/uuid.UUID"
+          - db_type: "pg_catalog.uuid"
+            go_type: "github.com/google/uuid.UUID"
+          # MATCH BOTH DATE VARIANTS HERE:
+          - column: "organizations.established_date"
+            go_type: "github.com/shashisharma307703/vedantam/db/types.CustomDate"
+          - column: "organizations.license_expiry"
+            go_type: "github.com/shashisharma307703/vedantam/db/types.CustomDate"
