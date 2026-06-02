@@ -41,7 +41,7 @@ CREATE TYPE mfa_method AS ENUM ('totp', 'sms', 'email', 'backup_code');
 
 -- Academic
 CREATE TYPE gender_type AS ENUM ('male', 'female', 'other');
-CREATE TYPE blood_group_type AS ENUM ('A+', 'A-', 'B+', 'B-', 'AB+', 'AB-', 'O+', 'O-', 'unknown');
+CREATE TYPE blood_group_type AS ENUM ('APlus', 'AMinus', 'BPlus', 'BMinus', 'ABPlus', 'ABMinus', 'OPlus', 'OMinus', 'unknown');
 CREATE TYPE document_type AS ENUM ('birth_certificate', 'transfer_certificate', 'medical', 'report_card', 'id_proof', 'photo', 'other');
 
 -- Attendance

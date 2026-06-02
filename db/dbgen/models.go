@@ -5,1149 +5,3379 @@
 package dbgen
 
 import (
+	"database/sql/driver"
+	"fmt"
+	"net/netip"
+
 	"github.com/google/uuid"
 	"github.com/jackc/pgx/v5/pgtype"
-	"github.com/shashisharma307703/vedantam/db/types"
 )
 
+type AlertType string
+
+const (
+	AlertTypeSms      AlertType = "sms"
+	AlertTypeEmail    AlertType = "email"
+	AlertTypePush     AlertType = "push"
+	AlertTypeWhatsapp AlertType = "whatsapp"
+)
+
+func (e *AlertType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AlertType(s)
+	case string:
+		*e = AlertType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AlertType: %T", src)
+	}
+	return nil
+}
+
+type NullAlertType struct {
+	AlertType AlertType `json:"alert_type"`
+	Valid     bool      `json:"valid"` // Valid is true if AlertType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAlertType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AlertType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AlertType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAlertType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AlertType), nil
+}
+
+type ApprovalStatus string
+
+const (
+	ApprovalStatusPending  ApprovalStatus = "pending"
+	ApprovalStatusApproved ApprovalStatus = "approved"
+	ApprovalStatusRejected ApprovalStatus = "rejected"
+)
+
+func (e *ApprovalStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ApprovalStatus(s)
+	case string:
+		*e = ApprovalStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ApprovalStatus: %T", src)
+	}
+	return nil
+}
+
+type NullApprovalStatus struct {
+	ApprovalStatus ApprovalStatus `json:"approval_status"`
+	Valid          bool           `json:"valid"` // Valid is true if ApprovalStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullApprovalStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ApprovalStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ApprovalStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullApprovalStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ApprovalStatus), nil
+}
+
+type AssetStatus string
+
+const (
+	AssetStatusAvailable   AssetStatus = "available"
+	AssetStatusInUse       AssetStatus = "in_use"
+	AssetStatusMaintenance AssetStatus = "maintenance"
+	AssetStatusDisposed    AssetStatus = "disposed"
+)
+
+func (e *AssetStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AssetStatus(s)
+	case string:
+		*e = AssetStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AssetStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAssetStatus struct {
+	AssetStatus AssetStatus `json:"asset_status"`
+	Valid       bool        `json:"valid"` // Valid is true if AssetStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAssetStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AssetStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AssetStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAssetStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AssetStatus), nil
+}
+
+type AttendanceStatus string
+
+const (
+	AttendanceStatusPresent AttendanceStatus = "present"
+	AttendanceStatusAbsent  AttendanceStatus = "absent"
+	AttendanceStatusLate    AttendanceStatus = "late"
+	AttendanceStatusHalfDay AttendanceStatus = "half_day"
+	AttendanceStatusHoliday AttendanceStatus = "holiday"
+	AttendanceStatusExcused AttendanceStatus = "excused"
+)
+
+func (e *AttendanceStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AttendanceStatus(s)
+	case string:
+		*e = AttendanceStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AttendanceStatus: %T", src)
+	}
+	return nil
+}
+
+type NullAttendanceStatus struct {
+	AttendanceStatus AttendanceStatus `json:"attendance_status"`
+	Valid            bool             `json:"valid"` // Valid is true if AttendanceStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAttendanceStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.AttendanceStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AttendanceStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAttendanceStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AttendanceStatus), nil
+}
+
+type AuditChangeType string
+
+const (
+	AuditChangeTypeCREATE           AuditChangeType = "CREATE"
+	AuditChangeTypeUPDATE           AuditChangeType = "UPDATE"
+	AuditChangeTypeDELETE           AuditChangeType = "DELETE"
+	AuditChangeTypeLOGIN            AuditChangeType = "LOGIN"
+	AuditChangeTypeLOGOUT           AuditChangeType = "LOGOUT"
+	AuditChangeTypeLOCK             AuditChangeType = "LOCK"
+	AuditChangeTypeUNLOCK           AuditChangeType = "UNLOCK"
+	AuditChangeTypePASSWORDCHANGE   AuditChangeType = "PASSWORD_CHANGE"
+	AuditChangeTypeROLECHANGE       AuditChangeType = "ROLE_CHANGE"
+	AuditChangeTypePERMISSIONCHANGE AuditChangeType = "PERMISSION_CHANGE"
+	AuditChangeTypeEXPORT           AuditChangeType = "EXPORT"
+	AuditChangeTypeIMPORT           AuditChangeType = "IMPORT"
+	AuditChangeTypeACTIVATE         AuditChangeType = "ACTIVATE"
+	AuditChangeTypeDEACTIVATE       AuditChangeType = "DEACTIVATE"
+)
+
+func (e *AuditChangeType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = AuditChangeType(s)
+	case string:
+		*e = AuditChangeType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for AuditChangeType: %T", src)
+	}
+	return nil
+}
+
+type NullAuditChangeType struct {
+	AuditChangeType AuditChangeType `json:"audit_change_type"`
+	Valid           bool            `json:"valid"` // Valid is true if AuditChangeType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullAuditChangeType) Scan(value interface{}) error {
+	if value == nil {
+		ns.AuditChangeType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.AuditChangeType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullAuditChangeType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.AuditChangeType), nil
+}
+
+type BillingPeriod string
+
+const (
+	BillingPeriodMonthly   BillingPeriod = "monthly"
+	BillingPeriodQuarterly BillingPeriod = "quarterly"
+	BillingPeriodYearly    BillingPeriod = "yearly"
+)
+
+func (e *BillingPeriod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BillingPeriod(s)
+	case string:
+		*e = BillingPeriod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BillingPeriod: %T", src)
+	}
+	return nil
+}
+
+type NullBillingPeriod struct {
+	BillingPeriod BillingPeriod `json:"billing_period"`
+	Valid         bool          `json:"valid"` // Valid is true if BillingPeriod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBillingPeriod) Scan(value interface{}) error {
+	if value == nil {
+		ns.BillingPeriod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BillingPeriod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBillingPeriod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BillingPeriod), nil
+}
+
+type BloodGroupType string
+
+const (
+	BloodGroupTypeAPlus   BloodGroupType = "APlus"
+	BloodGroupTypeAMinus  BloodGroupType = "AMinus"
+	BloodGroupTypeBPlus   BloodGroupType = "BPlus"
+	BloodGroupTypeBMinus  BloodGroupType = "BMinus"
+	BloodGroupTypeABPlus  BloodGroupType = "ABPlus"
+	BloodGroupTypeABMinus BloodGroupType = "ABMinus"
+	BloodGroupTypeOPlus   BloodGroupType = "OPlus"
+	BloodGroupTypeOMinus  BloodGroupType = "OMinus"
+	BloodGroupTypeUnknown BloodGroupType = "unknown"
+)
+
+func (e *BloodGroupType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BloodGroupType(s)
+	case string:
+		*e = BloodGroupType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BloodGroupType: %T", src)
+	}
+	return nil
+}
+
+type NullBloodGroupType struct {
+	BloodGroupType BloodGroupType `json:"blood_group_type"`
+	Valid          bool           `json:"valid"` // Valid is true if BloodGroupType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBloodGroupType) Scan(value interface{}) error {
+	if value == nil {
+		ns.BloodGroupType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BloodGroupType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBloodGroupType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BloodGroupType), nil
+}
+
+type BookIssueStatus string
+
+const (
+	BookIssueStatusIssued   BookIssueStatus = "issued"
+	BookIssueStatusReturned BookIssueStatus = "returned"
+	BookIssueStatusLost     BookIssueStatus = "lost"
+	BookIssueStatusDamaged  BookIssueStatus = "damaged"
+	BookIssueStatusRenewed  BookIssueStatus = "renewed"
+)
+
+func (e *BookIssueStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = BookIssueStatus(s)
+	case string:
+		*e = BookIssueStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for BookIssueStatus: %T", src)
+	}
+	return nil
+}
+
+type NullBookIssueStatus struct {
+	BookIssueStatus BookIssueStatus `json:"book_issue_status"`
+	Valid           bool            `json:"valid"` // Valid is true if BookIssueStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullBookIssueStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.BookIssueStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.BookIssueStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullBookIssueStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.BookIssueStatus), nil
+}
+
+type ComplaintPriority string
+
+const (
+	ComplaintPriorityLow      ComplaintPriority = "low"
+	ComplaintPriorityMedium   ComplaintPriority = "medium"
+	ComplaintPriorityHigh     ComplaintPriority = "high"
+	ComplaintPriorityCritical ComplaintPriority = "critical"
+)
+
+func (e *ComplaintPriority) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ComplaintPriority(s)
+	case string:
+		*e = ComplaintPriority(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ComplaintPriority: %T", src)
+	}
+	return nil
+}
+
+type NullComplaintPriority struct {
+	ComplaintPriority ComplaintPriority `json:"complaint_priority"`
+	Valid             bool              `json:"valid"` // Valid is true if ComplaintPriority is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullComplaintPriority) Scan(value interface{}) error {
+	if value == nil {
+		ns.ComplaintPriority, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ComplaintPriority.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullComplaintPriority) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ComplaintPriority), nil
+}
+
+type ComplaintStatus string
+
+const (
+	ComplaintStatusOpen       ComplaintStatus = "open"
+	ComplaintStatusInProgress ComplaintStatus = "in_progress"
+	ComplaintStatusResolved   ComplaintStatus = "resolved"
+	ComplaintStatusClosed     ComplaintStatus = "closed"
+	ComplaintStatusEscalated  ComplaintStatus = "escalated"
+)
+
+func (e *ComplaintStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ComplaintStatus(s)
+	case string:
+		*e = ComplaintStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ComplaintStatus: %T", src)
+	}
+	return nil
+}
+
+type NullComplaintStatus struct {
+	ComplaintStatus ComplaintStatus `json:"complaint_status"`
+	Valid           bool            `json:"valid"` // Valid is true if ComplaintStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullComplaintStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.ComplaintStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ComplaintStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullComplaintStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ComplaintStatus), nil
+}
+
+type DayOfWeek string
+
+const (
+	DayOfWeekMonday    DayOfWeek = "monday"
+	DayOfWeekTuesday   DayOfWeek = "tuesday"
+	DayOfWeekWednesday DayOfWeek = "wednesday"
+	DayOfWeekThursday  DayOfWeek = "thursday"
+	DayOfWeekFriday    DayOfWeek = "friday"
+	DayOfWeekSaturday  DayOfWeek = "saturday"
+	DayOfWeekSunday    DayOfWeek = "sunday"
+)
+
+func (e *DayOfWeek) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DayOfWeek(s)
+	case string:
+		*e = DayOfWeek(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DayOfWeek: %T", src)
+	}
+	return nil
+}
+
+type NullDayOfWeek struct {
+	DayOfWeek DayOfWeek `json:"day_of_week"`
+	Valid     bool      `json:"valid"` // Valid is true if DayOfWeek is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDayOfWeek) Scan(value interface{}) error {
+	if value == nil {
+		ns.DayOfWeek, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DayOfWeek.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDayOfWeek) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DayOfWeek), nil
+}
+
+type DocumentType string
+
+const (
+	DocumentTypeBirthCertificate    DocumentType = "birth_certificate"
+	DocumentTypeTransferCertificate DocumentType = "transfer_certificate"
+	DocumentTypeMedical             DocumentType = "medical"
+	DocumentTypeReportCard          DocumentType = "report_card"
+	DocumentTypeIDProof             DocumentType = "id_proof"
+	DocumentTypePhoto               DocumentType = "photo"
+	DocumentTypeOther               DocumentType = "other"
+)
+
+func (e *DocumentType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = DocumentType(s)
+	case string:
+		*e = DocumentType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for DocumentType: %T", src)
+	}
+	return nil
+}
+
+type NullDocumentType struct {
+	DocumentType DocumentType `json:"document_type"`
+	Valid        bool         `json:"valid"` // Valid is true if DocumentType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullDocumentType) Scan(value interface{}) error {
+	if value == nil {
+		ns.DocumentType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.DocumentType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullDocumentType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.DocumentType), nil
+}
+
+type ExamType string
+
+const (
+	ExamTypeUnitTest    ExamType = "unit_test"
+	ExamTypeQuarterly   ExamType = "quarterly"
+	ExamTypeHalfYearly  ExamType = "half_yearly"
+	ExamTypeAnnual      ExamType = "annual"
+	ExamTypePreliminary ExamType = "preliminary"
+	ExamTypePractice    ExamType = "practice"
+	ExamTypeOther       ExamType = "other"
+)
+
+func (e *ExamType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = ExamType(s)
+	case string:
+		*e = ExamType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for ExamType: %T", src)
+	}
+	return nil
+}
+
+type NullExamType struct {
+	ExamType ExamType `json:"exam_type"`
+	Valid    bool     `json:"valid"` // Valid is true if ExamType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullExamType) Scan(value interface{}) error {
+	if value == nil {
+		ns.ExamType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.ExamType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullExamType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.ExamType), nil
+}
+
+type FeeFrequency string
+
+const (
+	FeeFrequencyOneTime    FeeFrequency = "one_time"
+	FeeFrequencyMonthly    FeeFrequency = "monthly"
+	FeeFrequencyQuarterly  FeeFrequency = "quarterly"
+	FeeFrequencyHalfYearly FeeFrequency = "half_yearly"
+	FeeFrequencyAnnual     FeeFrequency = "annual"
+)
+
+func (e *FeeFrequency) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = FeeFrequency(s)
+	case string:
+		*e = FeeFrequency(s)
+	default:
+		return fmt.Errorf("unsupported scan type for FeeFrequency: %T", src)
+	}
+	return nil
+}
+
+type NullFeeFrequency struct {
+	FeeFrequency FeeFrequency `json:"fee_frequency"`
+	Valid        bool         `json:"valid"` // Valid is true if FeeFrequency is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullFeeFrequency) Scan(value interface{}) error {
+	if value == nil {
+		ns.FeeFrequency, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.FeeFrequency.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullFeeFrequency) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.FeeFrequency), nil
+}
+
+type FeeType string
+
+const (
+	FeeTypeTuition       FeeType = "tuition"
+	FeeTypeAdmission     FeeType = "admission"
+	FeeTypeLibrary       FeeType = "library"
+	FeeTypeTransport     FeeType = "transport"
+	FeeTypeHostel        FeeType = "hostel"
+	FeeTypeLaboratory    FeeType = "laboratory"
+	FeeTypeSports        FeeType = "sports"
+	FeeTypeExamination   FeeType = "examination"
+	FeeTypeMiscellaneous FeeType = "miscellaneous"
+)
+
+func (e *FeeType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = FeeType(s)
+	case string:
+		*e = FeeType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for FeeType: %T", src)
+	}
+	return nil
+}
+
+type NullFeeType struct {
+	FeeType FeeType `json:"fee_type"`
+	Valid   bool    `json:"valid"` // Valid is true if FeeType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullFeeType) Scan(value interface{}) error {
+	if value == nil {
+		ns.FeeType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.FeeType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullFeeType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.FeeType), nil
+}
+
+type GenderType string
+
+const (
+	GenderTypeMale   GenderType = "male"
+	GenderTypeFemale GenderType = "female"
+	GenderTypeOther  GenderType = "other"
+)
+
+func (e *GenderType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = GenderType(s)
+	case string:
+		*e = GenderType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for GenderType: %T", src)
+	}
+	return nil
+}
+
+type NullGenderType struct {
+	GenderType GenderType `json:"gender_type"`
+	Valid      bool       `json:"valid"` // Valid is true if GenderType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullGenderType) Scan(value interface{}) error {
+	if value == nil {
+		ns.GenderType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.GenderType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullGenderType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.GenderType), nil
+}
+
+type HomeworkStatus string
+
+const (
+	HomeworkStatusDraft     HomeworkStatus = "draft"
+	HomeworkStatusPublished HomeworkStatus = "published"
+	HomeworkStatusClosed    HomeworkStatus = "closed"
+)
+
+func (e *HomeworkStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = HomeworkStatus(s)
+	case string:
+		*e = HomeworkStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for HomeworkStatus: %T", src)
+	}
+	return nil
+}
+
+type NullHomeworkStatus struct {
+	HomeworkStatus HomeworkStatus `json:"homework_status"`
+	Valid          bool           `json:"valid"` // Valid is true if HomeworkStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullHomeworkStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.HomeworkStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.HomeworkStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullHomeworkStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.HomeworkStatus), nil
+}
+
+type IdentityProviderType string
+
+const (
+	IdentityProviderTypeLocal     IdentityProviderType = "local"
+	IdentityProviderTypeGoogle    IdentityProviderType = "google"
+	IdentityProviderTypeGithub    IdentityProviderType = "github"
+	IdentityProviderTypeMicrosoft IdentityProviderType = "microsoft"
+	IdentityProviderTypeLdap      IdentityProviderType = "ldap"
+	IdentityProviderTypeSaml      IdentityProviderType = "saml"
+	IdentityProviderTypeEntra     IdentityProviderType = "entra"
+)
+
+func (e *IdentityProviderType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = IdentityProviderType(s)
+	case string:
+		*e = IdentityProviderType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for IdentityProviderType: %T", src)
+	}
+	return nil
+}
+
+type NullIdentityProviderType struct {
+	IdentityProviderType IdentityProviderType `json:"identity_provider_type"`
+	Valid                bool                 `json:"valid"` // Valid is true if IdentityProviderType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullIdentityProviderType) Scan(value interface{}) error {
+	if value == nil {
+		ns.IdentityProviderType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.IdentityProviderType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullIdentityProviderType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.IdentityProviderType), nil
+}
+
+type InventoryCategory string
+
+const (
+	InventoryCategoryFurniture   InventoryCategory = "furniture"
+	InventoryCategoryElectronics InventoryCategory = "electronics"
+	InventoryCategoryStationery  InventoryCategory = "stationery"
+	InventoryCategorySports      InventoryCategory = "sports"
+	InventoryCategoryLaboratory  InventoryCategory = "laboratory"
+	InventoryCategoryCleaning    InventoryCategory = "cleaning"
+	InventoryCategoryOther       InventoryCategory = "other"
+)
+
+func (e *InventoryCategory) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = InventoryCategory(s)
+	case string:
+		*e = InventoryCategory(s)
+	default:
+		return fmt.Errorf("unsupported scan type for InventoryCategory: %T", src)
+	}
+	return nil
+}
+
+type NullInventoryCategory struct {
+	InventoryCategory InventoryCategory `json:"inventory_category"`
+	Valid             bool              `json:"valid"` // Valid is true if InventoryCategory is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullInventoryCategory) Scan(value interface{}) error {
+	if value == nil {
+		ns.InventoryCategory, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.InventoryCategory.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullInventoryCategory) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.InventoryCategory), nil
+}
+
+type JwtAlgorithm string
+
+const (
+	JwtAlgorithmRS256 JwtAlgorithm = "RS256"
+	JwtAlgorithmRS384 JwtAlgorithm = "RS384"
+	JwtAlgorithmRS512 JwtAlgorithm = "RS512"
+	JwtAlgorithmES256 JwtAlgorithm = "ES256"
+	JwtAlgorithmES384 JwtAlgorithm = "ES384"
+)
+
+func (e *JwtAlgorithm) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = JwtAlgorithm(s)
+	case string:
+		*e = JwtAlgorithm(s)
+	default:
+		return fmt.Errorf("unsupported scan type for JwtAlgorithm: %T", src)
+	}
+	return nil
+}
+
+type NullJwtAlgorithm struct {
+	JwtAlgorithm JwtAlgorithm `json:"jwt_algorithm"`
+	Valid        bool         `json:"valid"` // Valid is true if JwtAlgorithm is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullJwtAlgorithm) Scan(value interface{}) error {
+	if value == nil {
+		ns.JwtAlgorithm, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.JwtAlgorithm.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullJwtAlgorithm) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.JwtAlgorithm), nil
+}
+
+type LeaveStatus string
+
+const (
+	LeaveStatusPending   LeaveStatus = "pending"
+	LeaveStatusApproved  LeaveStatus = "approved"
+	LeaveStatusRejected  LeaveStatus = "rejected"
+	LeaveStatusCancelled LeaveStatus = "cancelled"
+)
+
+func (e *LeaveStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LeaveStatus(s)
+	case string:
+		*e = LeaveStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LeaveStatus: %T", src)
+	}
+	return nil
+}
+
+type NullLeaveStatus struct {
+	LeaveStatus LeaveStatus `json:"leave_status"`
+	Valid       bool        `json:"valid"` // Valid is true if LeaveStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLeaveStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.LeaveStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LeaveStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLeaveStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LeaveStatus), nil
+}
+
+type LeaveType string
+
+const (
+	LeaveTypeSick      LeaveType = "sick"
+	LeaveTypeCasual    LeaveType = "casual"
+	LeaveTypeEarned    LeaveType = "earned"
+	LeaveTypeMaternity LeaveType = "maternity"
+	LeaveTypePaternity LeaveType = "paternity"
+	LeaveTypeUnpaid    LeaveType = "unpaid"
+	LeaveTypeOther     LeaveType = "other"
+)
+
+func (e *LeaveType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = LeaveType(s)
+	case string:
+		*e = LeaveType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for LeaveType: %T", src)
+	}
+	return nil
+}
+
+type NullLeaveType struct {
+	LeaveType LeaveType `json:"leave_type"`
+	Valid     bool      `json:"valid"` // Valid is true if LeaveType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullLeaveType) Scan(value interface{}) error {
+	if value == nil {
+		ns.LeaveType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.LeaveType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullLeaveType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.LeaveType), nil
+}
+
+type MaterialType string
+
+const (
+	MaterialTypePdf          MaterialType = "pdf"
+	MaterialTypeVideo        MaterialType = "video"
+	MaterialTypeAssignment   MaterialType = "assignment"
+	MaterialTypePresentation MaterialType = "presentation"
+	MaterialTypeLink         MaterialType = "link"
+	MaterialTypeOther        MaterialType = "other"
+)
+
+func (e *MaterialType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MaterialType(s)
+	case string:
+		*e = MaterialType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MaterialType: %T", src)
+	}
+	return nil
+}
+
+type NullMaterialType struct {
+	MaterialType MaterialType `json:"material_type"`
+	Valid        bool         `json:"valid"` // Valid is true if MaterialType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMaterialType) Scan(value interface{}) error {
+	if value == nil {
+		ns.MaterialType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MaterialType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMaterialType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MaterialType), nil
+}
+
+type MfaMethod string
+
+const (
+	MfaMethodTotp       MfaMethod = "totp"
+	MfaMethodSms        MfaMethod = "sms"
+	MfaMethodEmail      MfaMethod = "email"
+	MfaMethodBackupCode MfaMethod = "backup_code"
+)
+
+func (e *MfaMethod) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = MfaMethod(s)
+	case string:
+		*e = MfaMethod(s)
+	default:
+		return fmt.Errorf("unsupported scan type for MfaMethod: %T", src)
+	}
+	return nil
+}
+
+type NullMfaMethod struct {
+	MfaMethod MfaMethod `json:"mfa_method"`
+	Valid     bool      `json:"valid"` // Valid is true if MfaMethod is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullMfaMethod) Scan(value interface{}) error {
+	if value == nil {
+		ns.MfaMethod, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.MfaMethod.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullMfaMethod) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.MfaMethod), nil
+}
+
+type NotificationChannel string
+
+const (
+	NotificationChannelSms      NotificationChannel = "sms"
+	NotificationChannelEmail    NotificationChannel = "email"
+	NotificationChannelPush     NotificationChannel = "push"
+	NotificationChannelInApp    NotificationChannel = "in_app"
+	NotificationChannelWhatsapp NotificationChannel = "whatsapp"
+)
+
+func (e *NotificationChannel) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = NotificationChannel(s)
+	case string:
+		*e = NotificationChannel(s)
+	default:
+		return fmt.Errorf("unsupported scan type for NotificationChannel: %T", src)
+	}
+	return nil
+}
+
+type NullNotificationChannel struct {
+	NotificationChannel NotificationChannel `json:"notification_channel"`
+	Valid               bool                `json:"valid"` // Valid is true if NotificationChannel is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullNotificationChannel) Scan(value interface{}) error {
+	if value == nil {
+		ns.NotificationChannel, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.NotificationChannel.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullNotificationChannel) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.NotificationChannel), nil
+}
+
+type NotificationStatus string
+
+const (
+	NotificationStatusQueued    NotificationStatus = "queued"
+	NotificationStatusSent      NotificationStatus = "sent"
+	NotificationStatusDelivered NotificationStatus = "delivered"
+	NotificationStatusFailed    NotificationStatus = "failed"
+	NotificationStatusRead      NotificationStatus = "read"
+)
+
+func (e *NotificationStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = NotificationStatus(s)
+	case string:
+		*e = NotificationStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for NotificationStatus: %T", src)
+	}
+	return nil
+}
+
+type NullNotificationStatus struct {
+	NotificationStatus NotificationStatus `json:"notification_status"`
+	Valid              bool               `json:"valid"` // Valid is true if NotificationStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullNotificationStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.NotificationStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.NotificationStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullNotificationStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.NotificationStatus), nil
+}
+
+type PaymentMode string
+
+const (
+	PaymentModeCash         PaymentMode = "cash"
+	PaymentModeCard         PaymentMode = "card"
+	PaymentModeOnline       PaymentMode = "online"
+	PaymentModeBankTransfer PaymentMode = "bank_transfer"
+	PaymentModeCheque       PaymentMode = "cheque"
+	PaymentModeUpi          PaymentMode = "upi"
+)
+
+func (e *PaymentMode) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentMode(s)
+	case string:
+		*e = PaymentMode(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentMode: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentMode struct {
+	PaymentMode PaymentMode `json:"payment_mode"`
+	Valid       bool        `json:"valid"` // Valid is true if PaymentMode is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentMode) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentMode, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentMode.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentMode) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentMode), nil
+}
+
+type PaymentStatus string
+
+const (
+	PaymentStatusPending   PaymentStatus = "pending"
+	PaymentStatusCompleted PaymentStatus = "completed"
+	PaymentStatusFailed    PaymentStatus = "failed"
+	PaymentStatusRefunded  PaymentStatus = "refunded"
+	PaymentStatusPartial   PaymentStatus = "partial"
+)
+
+func (e *PaymentStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PaymentStatus(s)
+	case string:
+		*e = PaymentStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PaymentStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPaymentStatus struct {
+	PaymentStatus PaymentStatus `json:"payment_status"`
+	Valid         bool          `json:"valid"` // Valid is true if PaymentStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPaymentStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PaymentStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PaymentStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPaymentStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PaymentStatus), nil
+}
+
+type PayrollStatus string
+
+const (
+	PayrollStatusDraft     PayrollStatus = "draft"
+	PayrollStatusProcessed PayrollStatus = "processed"
+	PayrollStatusPaid      PayrollStatus = "paid"
+	PayrollStatusCancelled PayrollStatus = "cancelled"
+)
+
+func (e *PayrollStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PayrollStatus(s)
+	case string:
+		*e = PayrollStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PayrollStatus: %T", src)
+	}
+	return nil
+}
+
+type NullPayrollStatus struct {
+	PayrollStatus PayrollStatus `json:"payroll_status"`
+	Valid         bool          `json:"valid"` // Valid is true if PayrollStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPayrollStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.PayrollStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PayrollStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPayrollStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PayrollStatus), nil
+}
+
+type PriorityLevel string
+
+const (
+	PriorityLevelLow    PriorityLevel = "low"
+	PriorityLevelMedium PriorityLevel = "medium"
+	PriorityLevelHigh   PriorityLevel = "high"
+	PriorityLevelUrgent PriorityLevel = "urgent"
+)
+
+func (e *PriorityLevel) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = PriorityLevel(s)
+	case string:
+		*e = PriorityLevel(s)
+	default:
+		return fmt.Errorf("unsupported scan type for PriorityLevel: %T", src)
+	}
+	return nil
+}
+
+type NullPriorityLevel struct {
+	PriorityLevel PriorityLevel `json:"priority_level"`
+	Valid         bool          `json:"valid"` // Valid is true if PriorityLevel is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullPriorityLevel) Scan(value interface{}) error {
+	if value == nil {
+		ns.PriorityLevel, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.PriorityLevel.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullPriorityLevel) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.PriorityLevel), nil
+}
+
+type RoomType string
+
+const (
+	RoomTypeDormitory RoomType = "dormitory"
+	RoomTypeShared    RoomType = "shared"
+	RoomTypePrivate   RoomType = "private"
+)
+
+func (e *RoomType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = RoomType(s)
+	case string:
+		*e = RoomType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for RoomType: %T", src)
+	}
+	return nil
+}
+
+type NullRoomType struct {
+	RoomType RoomType `json:"room_type"`
+	Valid    bool     `json:"valid"` // Valid is true if RoomType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullRoomType) Scan(value interface{}) error {
+	if value == nil {
+		ns.RoomType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.RoomType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullRoomType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.RoomType), nil
+}
+
+type TenantStatus string
+
+const (
+	TenantStatusActive    TenantStatus = "active"
+	TenantStatusInactive  TenantStatus = "inactive"
+	TenantStatusSuspended TenantStatus = "suspended"
+	TenantStatusTrial     TenantStatus = "trial"
+)
+
+func (e *TenantStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = TenantStatus(s)
+	case string:
+		*e = TenantStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for TenantStatus: %T", src)
+	}
+	return nil
+}
+
+type NullTenantStatus struct {
+	TenantStatus TenantStatus `json:"tenant_status"`
+	Valid        bool         `json:"valid"` // Valid is true if TenantStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullTenantStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.TenantStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.TenantStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullTenantStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.TenantStatus), nil
+}
+
+type UserStatus string
+
+const (
+	UserStatusActive   UserStatus = "active"
+	UserStatusInactive UserStatus = "inactive"
+	UserStatusLocked   UserStatus = "locked"
+	UserStatusDeleted  UserStatus = "deleted"
+)
+
+func (e *UserStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserStatus(s)
+	case string:
+		*e = UserStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserStatus: %T", src)
+	}
+	return nil
+}
+
+type NullUserStatus struct {
+	UserStatus UserStatus `json:"user_status"`
+	Valid      bool       `json:"valid"` // Valid is true if UserStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserStatus), nil
+}
+
+type UserType string
+
+const (
+	UserTypeLocal   UserType = "local"
+	UserTypeOauth   UserType = "oauth"
+	UserTypeLdap    UserType = "ldap"
+	UserTypeIdp     UserType = "idp"
+	UserTypeLockbox UserType = "lockbox"
+)
+
+func (e *UserType) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = UserType(s)
+	case string:
+		*e = UserType(s)
+	default:
+		return fmt.Errorf("unsupported scan type for UserType: %T", src)
+	}
+	return nil
+}
+
+type NullUserType struct {
+	UserType UserType `json:"user_type"`
+	Valid    bool     `json:"valid"` // Valid is true if UserType is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullUserType) Scan(value interface{}) error {
+	if value == nil {
+		ns.UserType, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.UserType.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullUserType) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.UserType), nil
+}
+
+type VehicleStatus string
+
+const (
+	VehicleStatusActive      VehicleStatus = "active"
+	VehicleStatusMaintenance VehicleStatus = "maintenance"
+	VehicleStatusRetired     VehicleStatus = "retired"
+	VehicleStatusInactive    VehicleStatus = "inactive"
+)
+
+func (e *VehicleStatus) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VehicleStatus(s)
+	case string:
+		*e = VehicleStatus(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VehicleStatus: %T", src)
+	}
+	return nil
+}
+
+type NullVehicleStatus struct {
+	VehicleStatus VehicleStatus `json:"vehicle_status"`
+	Valid         bool          `json:"valid"` // Valid is true if VehicleStatus is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVehicleStatus) Scan(value interface{}) error {
+	if value == nil {
+		ns.VehicleStatus, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VehicleStatus.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVehicleStatus) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VehicleStatus), nil
+}
+
+type VerificationMode string
+
+const (
+	VerificationModeFingerprint VerificationMode = "fingerprint"
+	VerificationModeFace        VerificationMode = "face"
+	VerificationModeCard        VerificationMode = "card"
+	VerificationModeManual      VerificationMode = "manual"
+)
+
+func (e *VerificationMode) Scan(src interface{}) error {
+	switch s := src.(type) {
+	case []byte:
+		*e = VerificationMode(s)
+	case string:
+		*e = VerificationMode(s)
+	default:
+		return fmt.Errorf("unsupported scan type for VerificationMode: %T", src)
+	}
+	return nil
+}
+
+type NullVerificationMode struct {
+	VerificationMode VerificationMode `json:"verification_mode"`
+	Valid            bool             `json:"valid"` // Valid is true if VerificationMode is not NULL
+}
+
+// Scan implements the Scanner interface.
+func (ns *NullVerificationMode) Scan(value interface{}) error {
+	if value == nil {
+		ns.VerificationMode, ns.Valid = "", false
+		return nil
+	}
+	ns.Valid = true
+	return ns.VerificationMode.Scan(value)
+}
+
+// Value implements the driver Valuer interface.
+func (ns NullVerificationMode) Value() (driver.Value, error) {
+	if !ns.Valid {
+		return nil, nil
+	}
+	return string(ns.VerificationMode), nil
+}
+
+// Academic year definitions per tenant; exactly one may be marked is_current
 type AcademicYear struct {
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	Year           string           `json:"year"`
-	StartDate      pgtype.Date      `json:"start_date"`
-	EndDate        pgtype.Date      `json:"end_date"`
-	IsActive       pgtype.Bool      `json:"is_active"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	StartDate pgtype.Date        `json:"start_date"`
+	EndDate   pgtype.Date        `json:"end_date"`
+	IsCurrent bool               `json:"is_current"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
-type AccountHead struct {
-	AccountHeadID int32            `json:"account_head_id"`
-	OrgID         uuid.UUID        `json:"org_id"`
-	HeadName      pgtype.Text      `json:"head_name"`
-	HeadCode      pgtype.Text      `json:"head_code"`
-	HeadType      pgtype.Text      `json:"head_type"`
-	CreatedAt     pgtype.Timestamp `json:"created_at"`
-}
-
-type AdmissionDocument struct {
-	AdmissionDocID  uuid.UUID        `json:"admission_doc_id"`
-	AdmissionFormID uuid.UUID        `json:"admission_form_id"`
-	DocumentType    pgtype.Text      `json:"document_type"`
-	FilePath        pgtype.Text      `json:"file_path"`
-	UploadDate      pgtype.Timestamp `json:"upload_date"`
-}
-
-type AdmissionForm struct {
-	AdmissionFormID     uuid.UUID        `json:"admission_form_id"`
-	OrgID               uuid.UUID        `json:"org_id"`
-	ApplicantName       string           `json:"applicant_name"`
-	ApplicantEmail      pgtype.Text      `json:"applicant_email"`
-	ApplicantPhone      pgtype.Text      `json:"applicant_phone"`
-	DateOfBirth         pgtype.Date      `json:"date_of_birth"`
-	Gender              pgtype.Text      `json:"gender"`
-	Address             pgtype.Text      `json:"address"`
-	City                pgtype.Text      `json:"city"`
-	State               pgtype.Text      `json:"state"`
-	PostalCode          pgtype.Text      `json:"postal_code"`
-	AppliedClassLevelID uuid.UUID        `json:"applied_class_level_id"`
-	AppliedStreamID     pgtype.UUID      `json:"applied_stream_id"`
-	PreviousSchool      pgtype.Text      `json:"previous_school"`
-	PreviousMarks       pgtype.Numeric   `json:"previous_marks"`
-	ParentName          pgtype.Text      `json:"parent_name"`
-	ParentEmail         pgtype.Text      `json:"parent_email"`
-	ParentPhone         pgtype.Text      `json:"parent_phone"`
-	FormStatus          pgtype.Text      `json:"form_status"`
-	ApplicationDate     pgtype.Timestamp `json:"application_date"`
-	SubmittedDate       pgtype.Timestamp `json:"submitted_date"`
-	ApprovalDate        pgtype.Timestamp `json:"approval_date"`
-	ApprovedBy          pgtype.UUID      `json:"approved_by"`
-	Remarks             pgtype.Text      `json:"remarks"`
-	CreatedAt           pgtype.Timestamp `json:"created_at"`
-}
-
+// School-wide or targeted announcements; can target specific roles and classes
 type Announcement struct {
-	AnnouncementID   uuid.UUID        `json:"announcement_id"`
-	OrgID            uuid.UUID        `json:"org_id"`
-	Title            string           `json:"title"`
-	Content          string           `json:"content"`
-	AnnouncementType pgtype.Text      `json:"announcement_type"`
-	TargetAudience   []byte           `json:"target_audience"`
-	CreatedBy        uuid.UUID        `json:"created_by"`
-	PublishDate      pgtype.Timestamp `json:"publish_date"`
-	ExpiryDate       pgtype.Timestamp `json:"expiry_date"`
-	IsPublished      pgtype.Bool      `json:"is_published"`
-	IsPinned         pgtype.Bool      `json:"is_pinned"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	Title            string             `json:"title"`
+	Content          string             `json:"content"`
+	ContentHtml      *string            `json:"content_html"`
+	TargetRoles      []byte             `json:"target_roles"`
+	TargetClassIds   []byte             `json:"target_class_ids"`
+	TargetSectionIds []byte             `json:"target_section_ids"`
+	Priority         PriorityLevel      `json:"priority"`
+	AttachmentUrls   []byte             `json:"attachment_urls"`
+	IsPublished      bool               `json:"is_published"`
+	PublishedAt      pgtype.Timestamptz `json:"published_at"`
+	ExpiresAt        pgtype.Timestamptz `json:"expires_at"`
+	SentBy           uuid.UUID          `json:"sent_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt        pgtype.Timestamptz `json:"deleted_at"`
 }
 
-type AnnouncementsRead struct {
-	ReadID         uuid.UUID        `json:"read_id"`
-	AnnouncementID uuid.UUID        `json:"announcement_id"`
-	UserID         uuid.UUID        `json:"user_id"`
-	ReadDate       pgtype.Timestamp `json:"read_date"`
+type AnnouncementRead struct {
+	ID             uuid.UUID          `json:"id"`
+	AnnouncementID uuid.UUID          `json:"announcement_id"`
+	UserID         uuid.UUID          `json:"user_id"`
+	ReadAt         pgtype.Timestamptz `json:"read_at"`
+}
+
+type ApiKey struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+	KeyName  string    `json:"key_name"`
+	// bcrypt/argon2 hash of the API key; plaintext never stored
+	ApiKeyHash   string             `json:"api_key_hash"`
+	ApiKeyPrefix string             `json:"api_key_prefix"`
+	Permissions  []byte             `json:"permissions"`
+	RateLimitRpm *int32             `json:"rate_limit_rpm"`
+	AllowedIps   []byte             `json:"allowed_ips"`
+	IsActive     bool               `json:"is_active"`
+	ExpiresAt    pgtype.Timestamptz `json:"expires_at"`
+	LastUsedAt   pgtype.Timestamptz `json:"last_used_at"`
+	LastUsedIp   *netip.Addr        `json:"last_used_ip"`
+	CreatedBy    pgtype.UUID        `json:"created_by"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Asset struct {
-	AssetID          uuid.UUID        `json:"asset_id"`
-	OrgID            uuid.UUID        `json:"org_id"`
-	AssetName        pgtype.Text      `json:"asset_name"`
-	AssetCode        string           `json:"asset_code"`
-	AssetCategory    pgtype.Text      `json:"asset_category"`
-	AssetLocation    pgtype.Text      `json:"asset_location"`
-	PurchaseDate     pgtype.Date      `json:"purchase_date"`
-	PurchaseValue    pgtype.Numeric   `json:"purchase_value"`
-	CurrentValue     pgtype.Numeric   `json:"current_value"`
-	DepreciationRate pgtype.Numeric   `json:"depreciation_rate"`
-	AssetStatus      pgtype.Text      `json:"asset_status"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	AssetName        string             `json:"asset_name"`
+	AssetCode        *string            `json:"asset_code"`
+	AssetType        *string            `json:"asset_type"`
+	SerialNumber     *string            `json:"serial_number"`
+	PurchaseDate     pgtype.Date        `json:"purchase_date"`
+	PurchasePrice    pgtype.Numeric     `json:"purchase_price"`
+	WarrantyExpiry   pgtype.Date        `json:"warranty_expiry"`
+	DepreciationRate pgtype.Numeric     `json:"depreciation_rate"`
+	CurrentValue     pgtype.Numeric     `json:"current_value"`
+	Location         *string            `json:"location"`
+	AssignedTo       pgtype.UUID        `json:"assigned_to"`
+	DepartmentID     pgtype.UUID        `json:"department_id"`
+	Status           AssetStatus        `json:"status"`
+	PhotoUrl         *string            `json:"photo_url"`
+	Remarks          *string            `json:"remarks"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
-type Assignment struct {
-	AssignmentID   uuid.UUID        `json:"assignment_id"`
-	StaffID        uuid.UUID        `json:"staff_id"`
-	SubjectID      uuid.UUID        `json:"subject_id"`
-	SectionID      uuid.UUID        `json:"section_id"`
-	Title          string           `json:"title"`
-	Description    pgtype.Text      `json:"description"`
-	AssignmentDate pgtype.Date      `json:"assignment_date"`
-	SubmissionDate pgtype.Date      `json:"submission_date"`
-	TotalMarks     pgtype.Int4      `json:"total_marks"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-}
-
-type AssignmentSubmission struct {
-	SubmissionID      uuid.UUID        `json:"submission_id"`
-	AssignmentID      uuid.UUID        `json:"assignment_id"`
-	StudentID         uuid.UUID        `json:"student_id"`
-	SubmissionDate    pgtype.Timestamp `json:"submission_date"`
-	SubmissionFileUrl pgtype.Text      `json:"submission_file_url"`
-	MarksObtained     pgtype.Int4      `json:"marks_obtained"`
-	Feedback          pgtype.Text      `json:"feedback"`
-	SubmittedBy       pgtype.UUID      `json:"submitted_by"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-}
-
+// Immutable audit trail; high volume â€” consider partitioning by created_at
 type AuditLog struct {
-	AuditID    uuid.UUID        `json:"audit_id"`
-	UserID     uuid.UUID        `json:"user_id"`
-	OrgID      pgtype.UUID      `json:"org_id"`
-	Action     string           `json:"action"`
-	Module     string           `json:"module"`
-	EntityType pgtype.Text      `json:"entity_type"`
-	EntityID   pgtype.Text      `json:"entity_id"`
-	OldValues  []byte           `json:"old_values"`
-	NewValues  []byte           `json:"new_values"`
-	IpAddress  pgtype.Text      `json:"ip_address"`
-	Timestamp  pgtype.Timestamp `json:"timestamp"`
+	ID            uuid.UUID          `json:"id"`
+	TenantID      pgtype.UUID        `json:"tenant_id"`
+	UserID        pgtype.UUID        `json:"user_id"`
+	Action        string             `json:"action"`
+	Module        string             `json:"module"`
+	EntityType    *string            `json:"entity_type"`
+	RecordID      pgtype.UUID        `json:"record_id"`
+	OldValue      []byte             `json:"old_value"`
+	NewValue      []byte             `json:"new_value"`
+	Description   *string            `json:"description"`
+	IpAddress     *netip.Addr        `json:"ip_address"`
+	UserAgent     *string            `json:"user_agent"`
+	RequestID     *string            `json:"request_id"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	RecordVersion int32              `json:"record_version"`
+	AccessScope   []byte             `json:"access_scope"`
+	ServiceName   *string            `json:"service_name"`
+	ChangeReason  *string            `json:"change_reason"`
+	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
+}
+
+// Raw biometric scan events; processed into student/teacher attendance
+type BiometricAttendance struct {
+	ID                uuid.UUID          `json:"id"`
+	UserID            uuid.UUID          `json:"user_id"`
+	TenantID          uuid.UUID          `json:"tenant_id"`
+	BiometricDeviceID pgtype.UUID        `json:"biometric_device_id"`
+	ScanTime          pgtype.Timestamptz `json:"scan_time"`
+	VerificationMode  VerificationMode   `json:"verification_mode"`
+	Direction         *string            `json:"direction"`
+	Status            *AttendanceStatus  `json:"status"`
+	RawData           []byte             `json:"raw_data"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
 }
 
 type BiometricDevice struct {
-	DeviceID           int32            `json:"device_id"`
-	OrgID              uuid.UUID        `json:"org_id"`
-	DeviceName         pgtype.Text      `json:"device_name"`
-	DeviceSerialNumber string           `json:"device_serial_number"`
-	DeviceType         pgtype.Text      `json:"device_type"`
-	Location           pgtype.Text      `json:"location"`
-	IpAddress          pgtype.Text      `json:"ip_address"`
-	IsActive           pgtype.Bool      `json:"is_active"`
-	LastSyncTime       pgtype.Timestamp `json:"last_sync_time"`
-	CreatedAt          pgtype.Timestamp `json:"created_at"`
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	DeviceName   string             `json:"device_name"`
+	DeviceSerial string             `json:"device_serial"`
+	Location     *string            `json:"location"`
+	IpAddress    *netip.Addr        `json:"ip_address"`
+	IsActive     bool               `json:"is_active"`
+	LastSyncAt   pgtype.Timestamptz `json:"last_sync_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
-type BiometricMapping struct {
-	MappingID     int32            `json:"mapping_id"`
-	UserID        uuid.UUID        `json:"user_id"`
-	BiometricID   string           `json:"biometric_id"`
-	BiometricType pgtype.Text      `json:"biometric_type"`
-	DeviceID      int32            `json:"device_id"`
-	MappedDate    pgtype.Timestamp `json:"mapped_date"`
-	IsActive      pgtype.Bool      `json:"is_active"`
+type BookIssue struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	BookID       uuid.UUID          `json:"book_id"`
+	StudentID    pgtype.UUID        `json:"student_id"`
+	UserID       pgtype.UUID        `json:"user_id"`
+	IssueDate    pgtype.Date        `json:"issue_date"`
+	DueDate      pgtype.Date        `json:"due_date"`
+	ReturnDate   pgtype.Date        `json:"return_date"`
+	RenewalCount int16              `json:"renewal_count"`
+	MaxRenewals  int16              `json:"max_renewals"`
+	FineAmount   pgtype.Numeric     `json:"fine_amount"`
+	Status       BookIssueStatus    `json:"status"`
+	Remarks      *string            `json:"remarks"`
+	IssuedBy     pgtype.UUID        `json:"issued_by"`
+	ReturnedTo   pgtype.UUID        `json:"returned_to"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
-type BookIssueReturn struct {
-	TransactionID      uuid.UUID        `json:"transaction_id"`
-	CopyID             uuid.UUID        `json:"copy_id"`
-	UserID             uuid.UUID        `json:"user_id"`
-	OrgID              uuid.UUID        `json:"org_id"`
-	IssueDate          pgtype.Date      `json:"issue_date"`
-	ExpectedReturnDate pgtype.Date      `json:"expected_return_date"`
-	ActualReturnDate   pgtype.Date      `json:"actual_return_date"`
-	IsReturned         pgtype.Bool      `json:"is_returned"`
-	IssuedBy           pgtype.UUID      `json:"issued_by"`
-	ReturnedBy         pgtype.UUID      `json:"returned_by"`
-	CreatedAt          pgtype.Timestamp `json:"created_at"`
-}
-
-type ClassLevel struct {
-	ClassLevelID      uuid.UUID        `json:"class_level_id"`
-	ClassName         string           `json:"class_name"`
-	ClassCode         string           `json:"class_code"`
-	DisplayOrder      int32            `json:"display_order"`
-	Description       pgtype.Text      `json:"description"`
-	IsLowerPrimary    pgtype.Bool      `json:"is_lower_primary"`
-	IsUpperPrimary    pgtype.Bool      `json:"is_upper_primary"`
-	IsSecondary       pgtype.Bool      `json:"is_secondary"`
-	IsHigherSecondary pgtype.Bool      `json:"is_higher_secondary"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
+type Class struct {
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	GradeID        uuid.UUID          `json:"grade_id"`
+	AcademicYearID uuid.UUID          `json:"academic_year_id"`
+	Name           string             `json:"name"`
+	SectionCount   int16              `json:"section_count"`
+	MaxStudents    *int32             `json:"max_students"`
+	RoomNumber     *string            `json:"room_number"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type ClassSubject struct {
-	ClassSubjectID uuid.UUID        `json:"class_subject_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	ClassLevelID   uuid.UUID        `json:"class_level_id"`
-	StreamID       pgtype.UUID      `json:"stream_id"`
-	SubjectID      uuid.UUID        `json:"subject_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	IsActive       pgtype.Bool      `json:"is_active"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	ClassID        uuid.UUID          `json:"class_id"`
+	SubjectID      uuid.UUID          `json:"subject_id"`
+	TeacherID      pgtype.UUID        `json:"teacher_id"`
+	PeriodsPerWeek *int16             `json:"periods_per_week"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Complaint struct {
-	ComplaintID           uuid.UUID        `json:"complaint_id"`
-	OrgID                 uuid.UUID        `json:"org_id"`
-	ComplainantID         uuid.UUID        `json:"complainant_id"`
-	ComplaintType         pgtype.Text      `json:"complaint_type"`
-	ComplaintDescription  pgtype.Text      `json:"complaint_description"`
-	ComplaintDate         pgtype.Timestamp `json:"complaint_date"`
-	Priority              pgtype.Text      `json:"priority"`
-	Status                pgtype.Text      `json:"status"`
-	AssignedTo            pgtype.UUID      `json:"assigned_to"`
-	ResolutionDescription pgtype.Text      `json:"resolution_description"`
-	ResolvedDate          pgtype.Timestamp `json:"resolved_date"`
-	CreatedAt             pgtype.Timestamp `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	RaisedByUserID uuid.UUID          `json:"raised_by_user_id"`
+	ComplaintType  string             `json:"complaint_type"`
+	Subject        string             `json:"subject"`
+	Description    string             `json:"description"`
+	AttachmentUrls []byte             `json:"attachment_urls"`
+	Priority       ComplaintPriority  `json:"priority"`
+	AssignedTo     pgtype.UUID        `json:"assigned_to"`
+	Status         ComplaintStatus    `json:"status"`
+	Resolution     *string            `json:"resolution"`
+	ResolutionDate pgtype.Timestamptz `json:"resolution_date"`
+	ResolvedBy     pgtype.UUID        `json:"resolved_by"`
+	Feedback       *string            `json:"feedback"`
+	FeedbackRating *int16             `json:"feedback_rating"`
+	EscalatedTo    pgtype.UUID        `json:"escalated_to"`
+	EscalatedAt    pgtype.Timestamptz `json:"escalated_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
-type Course struct {
-	CourseID     uuid.UUID        `json:"course_id"`
-	OrgID        uuid.UUID        `json:"org_id"`
-	CourseName   string           `json:"course_name"`
-	CourseCode   string           `json:"course_code"`
-	Description  pgtype.Text      `json:"description"`
-	InstructorID pgtype.UUID      `json:"instructor_id"`
-	StartDate    pgtype.Date      `json:"start_date"`
-	EndDate      pgtype.Date      `json:"end_date"`
-	CourseStatus pgtype.Text      `json:"course_status"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+type ComplaintComment struct {
+	ID            uuid.UUID          `json:"id"`
+	ComplaintID   uuid.UUID          `json:"complaint_id"`
+	UserID        uuid.UUID          `json:"user_id"`
+	Comment       string             `json:"comment"`
+	AttachmentUrl *string            `json:"attachment_url"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
-type CourseAssessment struct {
-	AssessmentID   uuid.UUID   `json:"assessment_id"`
-	CourseID       uuid.UUID   `json:"course_id"`
-	AssessmentName pgtype.Text `json:"assessment_name"`
-	AssessmentType pgtype.Text `json:"assessment_type"`
-	TotalMarks     pgtype.Int4 `json:"total_marks"`
-	PassingMarks   pgtype.Int4 `json:"passing_marks"`
-	DueDate        pgtype.Date `json:"due_date"`
-}
-
-type CourseAssessmentResult struct {
-	ResultID       uuid.UUID        `json:"result_id"`
-	AssessmentID   uuid.UUID        `json:"assessment_id"`
-	UserID         uuid.UUID        `json:"user_id"`
-	MarksObtained  pgtype.Int4      `json:"marks_obtained"`
-	SubmissionDate pgtype.Timestamp `json:"submission_date"`
-	Feedback       pgtype.Text      `json:"feedback"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-}
-
-type CourseEnrollment struct {
-	EnrollmentID         uuid.UUID        `json:"enrollment_id"`
-	CourseID             uuid.UUID        `json:"course_id"`
-	UserID               uuid.UUID        `json:"user_id"`
-	EnrollmentDate       pgtype.Timestamp `json:"enrollment_date"`
-	CompletionPercentage pgtype.Int4      `json:"completion_percentage"`
-	Status               pgtype.Text      `json:"status"`
-}
-
-type CourseModule struct {
-	ModuleID       uuid.UUID        `json:"module_id"`
-	CourseID       uuid.UUID        `json:"course_id"`
-	ModuleName     pgtype.Text      `json:"module_name"`
-	ModuleSequence pgtype.Int4      `json:"module_sequence"`
-	ModuleContent  pgtype.Text      `json:"module_content"`
-	ContentFileUrl pgtype.Text      `json:"content_file_url"`
-	IsPublished    pgtype.Bool      `json:"is_published"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+type Department struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	Name          string             `json:"name"`
+	Description   *string            `json:"description"`
+	HeadTeacherID pgtype.UUID        `json:"head_teacher_id"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Driver struct {
-	DriverID              uuid.UUID        `json:"driver_id"`
-	OrgID                 uuid.UUID        `json:"org_id"`
-	StaffID               pgtype.UUID      `json:"staff_id"`
-	DriverName            string           `json:"driver_name"`
-	LicenseNumber         string           `json:"license_number"`
-	LicenseExpiry         pgtype.Date      `json:"license_expiry"`
-	PhoneNumber           pgtype.Text      `json:"phone_number"`
-	Address               pgtype.Text      `json:"address"`
-	DateOfJoining         pgtype.Date      `json:"date_of_joining"`
-	BackgroundCheckStatus pgtype.Text      `json:"background_check_status"`
-	DriverStatus          pgtype.Text      `json:"driver_status"`
-	CreatedAt             pgtype.Timestamp `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	UserID         pgtype.UUID        `json:"user_id"`
+	Name           string             `json:"name"`
+	LicenseNumber  string             `json:"license_number"`
+	LicenseExpiry  pgtype.Date        `json:"license_expiry"`
+	Phone          string             `json:"phone"`
+	AlternatePhone *string            `json:"alternate_phone"`
+	Address        *string            `json:"address"`
+	DateOfBirth    pgtype.Date        `json:"date_of_birth"`
+	BloodGroup     *BloodGroupType    `json:"blood_group"`
+	PhotoUrl       *string            `json:"photo_url"`
+	HireDate       pgtype.Date        `json:"hire_date"`
+	IsActive       bool               `json:"is_active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
-type EmailNotification struct {
-	EmailID          uuid.UUID        `json:"email_id"`
-	OrgID            pgtype.UUID      `json:"org_id"`
-	RecipientEmail   pgtype.Text      `json:"recipient_email"`
-	EmailSubject     pgtype.Text      `json:"email_subject"`
-	EmailContent     pgtype.Text      `json:"email_content"`
-	EmailTemplate    pgtype.Text      `json:"email_template"`
-	NotificationType pgtype.Text      `json:"notification_type"`
-	SentBy           pgtype.UUID      `json:"sent_by"`
-	SentDate         pgtype.Timestamp `json:"sent_date"`
-	DeliveryStatus   pgtype.Text      `json:"delivery_status"`
-	DeliveryResponse pgtype.Text      `json:"delivery_response"`
+type Event struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	Title         string             `json:"title"`
+	Description   *string            `json:"description"`
+	EventType     *string            `json:"event_type"`
+	StartDatetime pgtype.Timestamptz `json:"start_datetime"`
+	EndDatetime   pgtype.Timestamptz `json:"end_datetime"`
+	IsAllDay      bool               `json:"is_all_day"`
+	Location      *string            `json:"location"`
+	TargetRoles   []byte             `json:"target_roles"`
+	IsHoliday     bool               `json:"is_holiday"`
+	CreatedBy     pgtype.UUID        `json:"created_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Exam struct {
-	ExamID         uuid.UUID        `json:"exam_id"`
-	ExamTypeID     int32            `json:"exam_type_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	ExamName       string           `json:"exam_name"`
-	Description    pgtype.Text      `json:"description"`
-	ExamStartDate  pgtype.Date      `json:"exam_start_date"`
-	ExamEndDate    pgtype.Date      `json:"exam_end_date"`
-	ExamStatus     pgtype.Text      `json:"exam_status"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	AcademicYearID uuid.UUID          `json:"academic_year_id"`
+	Name           string             `json:"name"`
+	ExamType       ExamType           `json:"exam_type"`
+	StartDate      pgtype.Date        `json:"start_date"`
+	EndDate        pgtype.Date        `json:"end_date"`
+	GradeSystemID  pgtype.UUID        `json:"grade_system_id"`
+	Description    *string            `json:"description"`
+	IsPublished    bool               `json:"is_published"`
+	CreatedBy      pgtype.UUID        `json:"created_by"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
-type ExamAnalytic struct {
-	AnalyticsID       uuid.UUID        `json:"analytics_id"`
-	ExamID            uuid.UUID        `json:"exam_id"`
-	ClassLevelID      uuid.UUID        `json:"class_level_id"`
-	SubjectID         uuid.UUID        `json:"subject_id"`
-	TotalStudents     pgtype.Int4      `json:"total_students"`
-	PresentStudents   pgtype.Int4      `json:"present_students"`
-	AbsentStudents    pgtype.Int4      `json:"absent_students"`
-	PassedStudents    pgtype.Int4      `json:"passed_students"`
-	FailedStudents    pgtype.Int4      `json:"failed_students"`
-	AverageMarks      pgtype.Numeric   `json:"average_marks"`
-	HighestMarks      pgtype.Numeric   `json:"highest_marks"`
-	LowestMarks       pgtype.Numeric   `json:"lowest_marks"`
-	StandardDeviation pgtype.Numeric   `json:"standard_deviation"`
-	AnalyticsDate     pgtype.Timestamp `json:"analytics_date"`
+type ExamTimetable struct {
+	ID           uuid.UUID          `json:"id"`
+	ExamID       uuid.UUID          `json:"exam_id"`
+	ClassID      uuid.UUID          `json:"class_id"`
+	SubjectID    uuid.UUID          `json:"subject_id"`
+	ExamDate     pgtype.Date        `json:"exam_date"`
+	StartTime    pgtype.Time        `json:"start_time"`
+	EndTime      pgtype.Time        `json:"end_time"`
+	RoomNumber   *string            `json:"room_number"`
+	MaxMarks     pgtype.Numeric     `json:"max_marks"`
+	PassingMarks pgtype.Numeric     `json:"passing_marks"`
+	Instructions *string            `json:"instructions"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
-type ExamResult struct {
-	ResultID      uuid.UUID        `json:"result_id"`
-	StudentID     uuid.UUID        `json:"student_id"`
-	ExamID        uuid.UUID        `json:"exam_id"`
-	SectionID     uuid.UUID        `json:"section_id"`
-	TotalMarks    pgtype.Numeric   `json:"total_marks"`
-	ObtainedMarks pgtype.Numeric   `json:"obtained_marks"`
-	Percentage    pgtype.Numeric   `json:"percentage"`
-	GradeID       pgtype.Int4      `json:"grade_id"`
-	Status        string           `json:"status"`
-	ResultDate    pgtype.Timestamp `json:"result_date"`
-	Published     pgtype.Bool      `json:"published"`
-	PublishedDate pgtype.Timestamp `json:"published_date"`
+type Expense struct {
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	CategoryID  uuid.UUID          `json:"category_id"`
+	Amount      pgtype.Numeric     `json:"amount"`
+	Description string             `json:"description"`
+	ExpenseDate pgtype.Date        `json:"expense_date"`
+	PaymentMode *PaymentMode       `json:"payment_mode"`
+	ReceiptUrl  *string            `json:"receipt_url"`
+	ApprovedBy  pgtype.UUID        `json:"approved_by"`
+	Status      ApprovalStatus     `json:"status"`
+	CreatedBy   uuid.UUID          `json:"created_by"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
-type ExamSchedule struct {
-	ScheduleID      uuid.UUID        `json:"schedule_id"`
-	ExamID          uuid.UUID        `json:"exam_id"`
-	SubjectID       uuid.UUID        `json:"subject_id"`
-	ClassLevelID    uuid.UUID        `json:"class_level_id"`
-	StreamID        pgtype.UUID      `json:"stream_id"`
-	ExamDate        pgtype.Date      `json:"exam_date"`
-	StartTime       pgtype.Time      `json:"start_time"`
-	EndTime         pgtype.Time      `json:"end_time"`
-	TotalMarks      pgtype.Int4      `json:"total_marks"`
-	PassingMarks    pgtype.Int4      `json:"passing_marks"`
-	DurationMinutes pgtype.Int4      `json:"duration_minutes"`
-	Location        pgtype.Text      `json:"location"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
+type ExpenseCategory struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	ParentID  pgtype.UUID        `json:"parent_id"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
-type ExamType struct {
-	ExamTypeID   int32            `json:"exam_type_id"`
-	OrgID        uuid.UUID        `json:"org_id"`
-	ExamTypeName string           `json:"exam_type_name"`
-	ExamCode     string           `json:"exam_code"`
-	Description  pgtype.Text      `json:"description"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+type FeeCollection struct {
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	StudentID          uuid.UUID          `json:"student_id"`
+	FeeInvoiceID       pgtype.UUID        `json:"fee_invoice_id"`
+	FeeStructureID     uuid.UUID          `json:"fee_structure_id"`
+	ReceiptNumber      string             `json:"receipt_number"`
+	AmountPaid         pgtype.Numeric     `json:"amount_paid"`
+	PaymentDate        pgtype.Date        `json:"payment_date"`
+	PaymentMode        PaymentMode        `json:"payment_mode"`
+	TransactionID      *string            `json:"transaction_id"`
+	BankName           *string            `json:"bank_name"`
+	ChequeNumber       *string            `json:"cheque_number"`
+	ReceiptUrl         *string            `json:"receipt_url"`
+	Remarks            *string            `json:"remarks"`
+	CollectedBy        pgtype.UUID        `json:"collected_by"`
+	Cancelled          bool               `json:"cancelled"`
+	CancelledAt        pgtype.Timestamptz `json:"cancelled_at"`
+	CancelledBy        pgtype.UUID        `json:"cancelled_by"`
+	CancellationReason *string            `json:"cancellation_reason"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
-type FeeAlert struct {
-	AlertID        uuid.UUID        `json:"alert_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	DueAmount      pgtype.Numeric   `json:"due_amount"`
-	DueDate        pgtype.Date      `json:"due_date"`
-	AlertStatus    pgtype.Text      `json:"alert_status"`
-	AlertCount     pgtype.Int4      `json:"alert_count"`
-	LastAlertDate  pgtype.Timestamp `json:"last_alert_date"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+type FeeDueAlert struct {
+	ID             uuid.UUID           `json:"id"`
+	TenantID       uuid.UUID           `json:"tenant_id"`
+	StudentID      uuid.UUID           `json:"student_id"`
+	FeeInvoiceID   pgtype.UUID         `json:"fee_invoice_id"`
+	DueAmount      pgtype.Numeric      `json:"due_amount"`
+	DueDate        pgtype.Date         `json:"due_date"`
+	AlertType      AlertType           `json:"alert_type"`
+	AlertSentAt    pgtype.Timestamptz  `json:"alert_sent_at"`
+	MessageContent *string             `json:"message_content"`
+	DeliveryStatus *NotificationStatus `json:"delivery_status"`
+	ErrorMessage   *string             `json:"error_message"`
+	CreatedAt      pgtype.Timestamptz  `json:"created_at"`
 }
 
-type FeeConcession struct {
-	ConcessionID         uuid.UUID        `json:"concession_id"`
-	StudentID            uuid.UUID        `json:"student_id"`
-	AcademicYearID       uuid.UUID        `json:"academic_year_id"`
-	ConcessionType       pgtype.Text      `json:"concession_type"`
-	ConcessionPercentage pgtype.Numeric   `json:"concession_percentage"`
-	ConcessionAmount     pgtype.Numeric   `json:"concession_amount"`
-	Reason               pgtype.Text      `json:"reason"`
-	ApprovedBy           pgtype.UUID      `json:"approved_by"`
-	ApprovalDate         pgtype.Timestamp `json:"approval_date"`
-	IsActive             pgtype.Bool      `json:"is_active"`
-	CreatedAt            pgtype.Timestamp `json:"created_at"`
+// Individual fee invoices generated per student; tracks discounts and late fees
+type FeeInvoice struct {
+	ID                uuid.UUID          `json:"id"`
+	TenantID          uuid.UUID          `json:"tenant_id"`
+	StudentID         uuid.UUID          `json:"student_id"`
+	FeeStructureID    uuid.UUID          `json:"fee_structure_id"`
+	InvoiceNumber     string             `json:"invoice_number"`
+	PeriodLabel       *string            `json:"period_label"`
+	Amount            pgtype.Numeric     `json:"amount"`
+	DiscountAmount    pgtype.Numeric     `json:"discount_amount"`
+	ScholarshipAmount pgtype.Numeric     `json:"scholarship_amount"`
+	LateFee           pgtype.Numeric     `json:"late_fee"`
+	NetAmount         pgtype.Numeric     `json:"net_amount"`
+	DueDate           pgtype.Date        `json:"due_date"`
+	Status            PaymentStatus      `json:"status"`
+	Metadata          []byte             `json:"metadata"`
+	CreatedAt         pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt         pgtype.Timestamptz `json:"updated_at"`
 }
 
+// Fee schedule definitions per class per academic year
 type FeeStructure struct {
-	FeeStructureID uuid.UUID        `json:"fee_structure_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	ClassLevelID   uuid.UUID        `json:"class_level_id"`
-	StreamID       pgtype.UUID      `json:"stream_id"`
-	FeeType        string           `json:"fee_type"`
-	Amount         pgtype.Numeric   `json:"amount"`
-	Description    pgtype.Text      `json:"description"`
-	IsMandatory    pgtype.Bool      `json:"is_mandatory"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	AcademicYearID uuid.UUID          `json:"academic_year_id"`
+	ClassID        pgtype.UUID        `json:"class_id"`
+	FeeType        FeeType            `json:"fee_type"`
+	Name           string             `json:"name"`
+	Amount         pgtype.Numeric     `json:"amount"`
+	Frequency      FeeFrequency       `json:"frequency"`
+	DueDay         *int16             `json:"due_day"`
+	DueDate        pgtype.Date        `json:"due_date"`
+	LateFeePerDay  pgtype.Numeric     `json:"late_fee_per_day"`
+	IsMandatory    bool               `json:"is_mandatory"`
+	Description    *string            `json:"description"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
-type FeeTransaction struct {
-	TransactionID        uuid.UUID        `json:"transaction_id"`
-	StudentID            uuid.UUID        `json:"student_id"`
-	AcademicYearID       uuid.UUID        `json:"academic_year_id"`
-	TransactionDate      pgtype.Date      `json:"transaction_date"`
-	AmountDue            pgtype.Numeric   `json:"amount_due"`
-	AmountPaid           pgtype.Numeric   `json:"amount_paid"`
-	PaymentMethod        string           `json:"payment_method"`
-	TransactionReference pgtype.Text      `json:"transaction_reference"`
-	PaymentStatus        pgtype.Text      `json:"payment_status"`
-	Notes                pgtype.Text      `json:"notes"`
-	CollectedBy          pgtype.UUID      `json:"collected_by"`
-	CreatedAt            pgtype.Timestamp `json:"created_at"`
-}
-
-type FinancialReport struct {
-	ReportID       uuid.UUID        `json:"report_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	ReportType     pgtype.Text      `json:"report_type"`
-	ReportName     pgtype.Text      `json:"report_name"`
-	StartDate      pgtype.Date      `json:"start_date"`
-	EndDate        pgtype.Date      `json:"end_date"`
-	TotalRevenue   pgtype.Numeric   `json:"total_revenue"`
-	TotalExpense   pgtype.Numeric   `json:"total_expense"`
-	NetProfit      pgtype.Numeric   `json:"net_profit"`
-	ReportData     []byte           `json:"report_data"`
-	GeneratedBy    pgtype.UUID      `json:"generated_by"`
-	GeneratedDate  pgtype.Timestamp `json:"generated_date"`
+// Real-time GPS data from vehicle tracking devices; high-volume, consider partitioning
+type GpsTrackingLog struct {
+	ID         uuid.UUID          `json:"id"`
+	VehicleID  uuid.UUID          `json:"vehicle_id"`
+	Latitude   pgtype.Numeric     `json:"latitude"`
+	Longitude  pgtype.Numeric     `json:"longitude"`
+	SpeedKmh   pgtype.Numeric     `json:"speed_kmh"`
+	Heading    *int16             `json:"heading"`
+	RecordedAt pgtype.Timestamptz `json:"recorded_at"`
 }
 
 type Grade struct {
-	GradeID       int32          `json:"grade_id"`
-	GradeScaleID  int32          `json:"grade_scale_id"`
-	GradeLetter   pgtype.Text    `json:"grade_letter"`
-	MinPercentage pgtype.Numeric `json:"min_percentage"`
-	MaxPercentage pgtype.Numeric `json:"max_percentage"`
-	GradePoint    pgtype.Numeric `json:"grade_point"`
-	Description   pgtype.Text    `json:"description"`
+	ID          uuid.UUID          `json:"id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	Name        string             `json:"name"`
+	Sequence    int16              `json:"sequence"`
+	Description *string            `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
-type GradeScale struct {
-	GradeScaleID int32            `json:"grade_scale_id"`
-	OrgID        int32            `json:"org_id"`
-	ScaleName    pgtype.Text      `json:"scale_name"`
-	Description  pgtype.Text      `json:"description"`
-	IsActive     pgtype.Bool      `json:"is_active"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+type GradeScaleEntry struct {
+	ID            uuid.UUID          `json:"id"`
+	GradeSystemID uuid.UUID          `json:"grade_system_id"`
+	GradeName     string             `json:"grade_name"`
+	MinPercentage pgtype.Numeric     `json:"min_percentage"`
+	MaxPercentage pgtype.Numeric     `json:"max_percentage"`
+	GradePoint    pgtype.Numeric     `json:"grade_point"`
+	Description   *string            `json:"description"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+}
+
+type GradeSystem struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	IsDefault bool               `json:"is_default"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Homework struct {
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	TeacherID      uuid.UUID          `json:"teacher_id"`
+	ClassID        uuid.UUID          `json:"class_id"`
+	SectionID      pgtype.UUID        `json:"section_id"`
+	SubjectID      uuid.UUID          `json:"subject_id"`
+	Title          string             `json:"title"`
+	Description    *string            `json:"description"`
+	Instructions   *string            `json:"instructions"`
+	DueDate        pgtype.Date        `json:"due_date"`
+	TotalMarks     pgtype.Numeric     `json:"total_marks"`
+	AttachmentUrls []byte             `json:"attachment_urls"`
+	Status         HomeworkStatus     `json:"status"`
+	PublishedAt    pgtype.Timestamptz `json:"published_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type HomeworkSubmission struct {
+	ID             uuid.UUID          `json:"id"`
+	HomeworkID     uuid.UUID          `json:"homework_id"`
+	StudentID      uuid.UUID          `json:"student_id"`
+	SubmissionText *string            `json:"submission_text"`
+	AttachmentUrls []byte             `json:"attachment_urls"`
+	SubmittedAt    pgtype.Timestamptz `json:"submitted_at"`
+	IsLate         bool               `json:"is_late"`
+	MarksObtained  pgtype.Numeric     `json:"marks_obtained"`
+	Feedback       *string            `json:"feedback"`
+	GradedBy       pgtype.UUID        `json:"graded_by"`
+	GradedAt       pgtype.Timestamptz `json:"graded_at"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Hostel struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Name         string             `json:"name"`
+	Type         *string            `json:"type"`
+	TotalRooms   int32              `json:"total_rooms"`
+	TotalBeds    *int32             `json:"total_beds"`
+	Address      *string            `json:"address"`
+	WardenID     pgtype.UUID        `json:"warden_id"`
+	ContactPhone *string            `json:"contact_phone"`
+	IsActive     bool               `json:"is_active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
 type HostelAllocation struct {
-	AllocationID     uuid.UUID        `json:"allocation_id"`
-	StudentID        uuid.UUID        `json:"student_id"`
-	RoomID           uuid.UUID        `json:"room_id"`
-	AcademicYearID   uuid.UUID        `json:"academic_year_id"`
-	AllocationDate   pgtype.Date      `json:"allocation_date"`
-	CheckoutDate     pgtype.Date      `json:"checkout_date"`
-	AllocationStatus pgtype.Text      `json:"allocation_status"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID            uuid.UUID          `json:"id"`
+	StudentID     uuid.UUID          `json:"student_id"`
+	HostelRoomID  uuid.UUID          `json:"hostel_room_id"`
+	BedNumber     *string            `json:"bed_number"`
+	AllocatedDate pgtype.Date        `json:"allocated_date"`
+	LeaveDate     pgtype.Date        `json:"leave_date"`
+	IsCurrent     bool               `json:"is_current"`
+	MonthlyRent   pgtype.Numeric     `json:"monthly_rent"`
+	Remarks       *string            `json:"remarks"`
+	AllocatedBy   pgtype.UUID        `json:"allocated_by"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
-type HostelBlock struct {
-	BlockID    uuid.UUID        `json:"block_id"`
-	OrgID      uuid.UUID        `json:"org_id"`
-	BlockName  string           `json:"block_name"`
-	BlockType  pgtype.Text      `json:"block_type"`
-	TotalRooms pgtype.Int4      `json:"total_rooms"`
-	CreatedAt  pgtype.Timestamp `json:"created_at"`
+type HostelFee struct {
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	HostelAllocationID uuid.UUID          `json:"hostel_allocation_id"`
+	Month              int16              `json:"month"`
+	Year               int16              `json:"year"`
+	Amount             pgtype.Numeric     `json:"amount"`
+	PaidStatus         PaymentStatus      `json:"paid_status"`
+	PaymentDate        pgtype.Date        `json:"payment_date"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
 type HostelRoom struct {
-	RoomID     uuid.UUID        `json:"room_id"`
-	BlockID    uuid.UUID        `json:"block_id"`
-	RoomNumber string           `json:"room_number"`
-	RoomType   pgtype.Text      `json:"room_type"`
-	Capacity   pgtype.Int4      `json:"capacity"`
-	RoomStatus pgtype.Text      `json:"room_status"`
-	CreatedAt  pgtype.Timestamp `json:"created_at"`
+	ID               uuid.UUID          `json:"id"`
+	HostelID         uuid.UUID          `json:"hostel_id"`
+	RoomNumber       string             `json:"room_number"`
+	Floor            *int16             `json:"floor"`
+	Capacity         int16              `json:"capacity"`
+	CurrentOccupancy int16              `json:"current_occupancy"`
+	RoomType         RoomType           `json:"room_type"`
+	MonthlyRent      pgtype.Numeric     `json:"monthly_rent"`
+	Amenities        []byte             `json:"amenities"`
+	Status           string             `json:"status"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Defines authentication sources per tenant. Each tenant can have multiple IDPs (e.g., Google + LDAP).
+type IdentityProvider struct {
+	ID       uuid.UUID            `json:"id"`
+	TenantID pgtype.UUID          `json:"tenant_id"`
+	Name     string               `json:"name"`
+	Type     IdentityProviderType `json:"type"`
+	ClientID *string              `json:"client_id"`
+	// SENSITIVE: OAuth2 client secret. Must be encrypted at rest before storage.
+	ClientSecret *string `json:"client_secret"`
+	RedirectUrl  *string `json:"redirect_url"`
+	Scopes       []byte  `json:"scopes"`
+	// Dynamic IDP-specific config: LDAP base_dn/server/bind_dn, SAML metadata_url, OAuth2 endpoint URLs.
+	Attributes []byte             `json:"attributes"`
+	IsActive   bool               `json:"is_active"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Tracks bulk import operations (CSV/Excel) with row-level error reporting
+type ImportBatch struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	BatchID      string             `json:"batch_id"`
+	ImportType   string             `json:"import_type"`
+	FileName     *string            `json:"file_name"`
+	FileUrl      *string            `json:"file_url"`
+	TotalRows    *int32             `json:"total_rows"`
+	SuccessCount *int32             `json:"success_count"`
+	ErrorCount   *int32             `json:"error_count"`
+	ErrorDetails []byte             `json:"error_details"`
+	Status       string             `json:"status"`
+	ImportedBy   uuid.UUID          `json:"imported_by"`
+	StartedAt    pgtype.Timestamptz `json:"started_at"`
+	CompletedAt  pgtype.Timestamptz `json:"completed_at"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
 type InventoryItem struct {
-	ItemID           uuid.UUID        `json:"item_id"`
-	OrgID            uuid.UUID        `json:"org_id"`
-	ItemName         string           `json:"item_name"`
-	ItemCode         string           `json:"item_code"`
-	Category         pgtype.Text      `json:"category"`
-	Quantity         pgtype.Int4      `json:"quantity"`
-	ReorderLevel     pgtype.Int4      `json:"reorder_level"`
-	UnitPrice        pgtype.Numeric   `json:"unit_price"`
-	SupplierName     pgtype.Text      `json:"supplier_name"`
-	LastPurchaseDate pgtype.Date      `json:"last_purchase_date"`
-	ItemStatus       pgtype.Text      `json:"item_status"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	ItemName        string             `json:"item_name"`
+	ItemCode        *string            `json:"item_code"`
+	Category        InventoryCategory  `json:"category"`
+	Quantity        int32              `json:"quantity"`
+	Unit            *string            `json:"unit"`
+	UnitPrice       pgtype.Numeric     `json:"unit_price"`
+	ReorderLevel    *int32             `json:"reorder_level"`
+	SupplierName    *string            `json:"supplier_name"`
+	SupplierContact *string            `json:"supplier_contact"`
+	Location        *string            `json:"location"`
+	PurchaseDate    pgtype.Date        `json:"purchase_date"`
+	ExpiryDate      pgtype.Date        `json:"expiry_date"`
+	Description     *string            `json:"description"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type InventoryTransaction struct {
-	TransactionID   uuid.UUID        `json:"transaction_id"`
-	ItemID          uuid.UUID        `json:"item_id"`
-	TransactionType string           `json:"transaction_type"`
-	Quantity        pgtype.Int4      `json:"quantity"`
-	TransactionDate pgtype.Date      `json:"transaction_date"`
-	ReferenceID     pgtype.Text      `json:"reference_id"`
-	Notes           pgtype.Text      `json:"notes"`
-	CreatedBy       pgtype.UUID      `json:"created_by"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	ItemID          uuid.UUID          `json:"item_id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	TransactionType string             `json:"transaction_type"`
+	Quantity        int32              `json:"quantity"`
+	UnitPrice       pgtype.Numeric     `json:"unit_price"`
+	Reference       *string            `json:"reference"`
+	Remarks         *string            `json:"remarks"`
+	PerformedBy     pgtype.UUID        `json:"performed_by"`
+	TransactionDate pgtype.Date        `json:"transaction_date"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
 }
 
-type Invoice struct {
-	InvoiceID      uuid.UUID        `json:"invoice_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	InvoiceNumber  string           `json:"invoice_number"`
-	InvoiceDate    pgtype.Date      `json:"invoice_date"`
-	TotalAmount    pgtype.Numeric   `json:"total_amount"`
-	TaxAmount      pgtype.Numeric   `json:"tax_amount"`
-	DiscountAmount pgtype.Numeric   `json:"discount_amount"`
-	NetAmount      pgtype.Numeric   `json:"net_amount"`
-	DueDate        pgtype.Date      `json:"due_date"`
-	PaymentStatus  pgtype.Text      `json:"payment_status"`
-	InvoiceData    []byte           `json:"invoice_data"`
-	GeneratedBy    pgtype.UUID      `json:"generated_by"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+// IP/CIDR-based access control. is_allowed=TRUE means whitelist, FALSE means blocklist. Platform-wide rules have tenant_id=NULL.
+type IpAllowlist struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  pgtype.UUID        `json:"tenant_id"`
+	IpAddress netip.Prefix       `json:"ip_address"`
+	Label     *string            `json:"label"`
+	IsAllowed bool               `json:"is_allowed"`
+	IsActive  bool               `json:"is_active"`
+	CreatedBy pgtype.UUID        `json:"created_by"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
-type LeaveApplication struct {
-	LeaveApplicationID uuid.UUID        `json:"leave_application_id"`
-	UserID             uuid.UUID        `json:"user_id"`
-	OrgID              uuid.UUID        `json:"org_id"`
-	LeaveTypeID        int32            `json:"leave_type_id"`
-	StartDate          pgtype.Date      `json:"start_date"`
-	EndDate            pgtype.Date      `json:"end_date"`
-	NumberOfDays       pgtype.Int4      `json:"number_of_days"`
-	Reason             pgtype.Text      `json:"reason"`
-	ApplicationStatus  pgtype.Text      `json:"application_status"`
-	ApprovedBy         pgtype.UUID      `json:"approved_by"`
-	ApprovalDate       pgtype.Timestamp `json:"approval_date"`
-	RejectionReason    pgtype.Text      `json:"rejection_reason"`
-	CreatedAt          pgtype.Timestamp `json:"created_at"`
+// Asymmetric JWT signing keys (RSA-4096/ECC). Only one active key per tenant at a time. Old keys kept for verification.
+type JwtSigningKey struct {
+	ID         uuid.UUID          `json:"id"`
+	TenantID   pgtype.UUID        `json:"tenant_id"`
+	Algorithm  JwtAlgorithm       `json:"algorithm"`
+	IssuerID   string             `json:"issuer_id"`
+	PublicKey  string             `json:"public_key"`
+	PrivateKey string             `json:"private_key"`
+	IsActive   bool               `json:"is_active"`
+	RotatedAt  pgtype.Timestamptz `json:"rotated_at"`
+	ExpiresAt  pgtype.Timestamptz `json:"expires_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
 }
 
-type LeaveType struct {
-	LeaveTypeID         int32            `json:"leave_type_id"`
-	OrgID               uuid.UUID        `json:"org_id"`
-	LeaveTypeName       string           `json:"leave_type_name"`
-	Description         pgtype.Text      `json:"description"`
-	AnnualLimit         pgtype.Int4      `json:"annual_limit"`
-	CarryForwardAllowed pgtype.Bool      `json:"carry_forward_allowed"`
-	RequiresApproval    pgtype.Bool      `json:"requires_approval"`
-	CreatedAt           pgtype.Timestamp `json:"created_at"`
+type LearningMaterial struct {
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	TeacherID       uuid.UUID          `json:"teacher_id"`
+	ClassID         pgtype.UUID        `json:"class_id"`
+	SectionID       pgtype.UUID        `json:"section_id"`
+	SubjectID       pgtype.UUID        `json:"subject_id"`
+	Title           string             `json:"title"`
+	Description     *string            `json:"description"`
+	MaterialType    MaterialType       `json:"material_type"`
+	FileUrl         *string            `json:"file_url"`
+	ExternalLink    *string            `json:"external_link"`
+	FileSizeBytes   *int64             `json:"file_size_bytes"`
+	DurationMinutes *int32             `json:"duration_minutes"`
+	IsPublished     bool               `json:"is_published"`
+	SortOrder       *int16             `json:"sort_order"`
+	Tags            []byte             `json:"tags"`
+	ViewCount       int32              `json:"view_count"`
+	UploadedAt      pgtype.Timestamptz `json:"uploaded_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
-type LedgerEntry struct {
-	LedgerEntryID   uuid.UUID        `json:"ledger_entry_id"`
-	AccountHeadID   int32            `json:"account_head_id"`
-	TransactionDate pgtype.Date      `json:"transaction_date"`
-	DebitAmount     pgtype.Numeric   `json:"debit_amount"`
-	CreditAmount    pgtype.Numeric   `json:"credit_amount"`
-	ReferenceID     pgtype.Text      `json:"reference_id"`
-	ReferenceType   pgtype.Text      `json:"reference_type"`
-	Description     pgtype.Text      `json:"description"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
+type LeaveBalance struct {
+	ID             uuid.UUID          `json:"id"`
+	UserID         uuid.UUID          `json:"user_id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	AcademicYearID uuid.UUID          `json:"academic_year_id"`
+	LeaveType      LeaveType          `json:"leave_type"`
+	TotalAllowed   pgtype.Numeric     `json:"total_allowed"`
+	Used           pgtype.Numeric     `json:"used"`
+	Remaining      pgtype.Numeric     `json:"remaining"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
+}
+
+type LeaveRequest struct {
+	ID              uuid.UUID          `json:"id"`
+	UserID          uuid.UUID          `json:"user_id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	LeaveType       LeaveType          `json:"leave_type"`
+	FromDate        pgtype.Date        `json:"from_date"`
+	ToDate          pgtype.Date        `json:"to_date"`
+	TotalDays       pgtype.Numeric     `json:"total_days"`
+	Reason          string             `json:"reason"`
+	AttachmentUrl   *string            `json:"attachment_url"`
+	Status          LeaveStatus        `json:"status"`
+	ApprovedBy      pgtype.UUID        `json:"approved_by"`
+	ApprovedAt      pgtype.Timestamptz `json:"approved_at"`
+	RejectionReason *string            `json:"rejection_reason"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LessonPlan struct {
-	LessonPlanID        uuid.UUID        `json:"lesson_plan_id"`
-	StaffID             uuid.UUID        `json:"staff_id"`
-	SubjectID           uuid.UUID        `json:"subject_id"`
-	ClassLevelID        uuid.UUID        `json:"class_level_id"`
-	StreamID            pgtype.UUID      `json:"stream_id"`
-	AcademicYearID      uuid.UUID        `json:"academic_year_id"`
-	LessonTitle         string           `json:"lesson_title"`
-	LessonDate          pgtype.Date      `json:"lesson_date"`
-	LessonContent       pgtype.Text      `json:"lesson_content"`
-	LearningOutcomes    pgtype.Text      `json:"learning_outcomes"`
-	TeachingMethodology pgtype.Text      `json:"teaching_methodology"`
-	ResourcesRequired   pgtype.Text      `json:"resources_required"`
-	AssessmentMethod    pgtype.Text      `json:"assessment_method"`
-	CreatedAt           pgtype.Timestamp `json:"created_at"`
+	ID                   uuid.UUID          `json:"id"`
+	TenantID             uuid.UUID          `json:"tenant_id"`
+	TeacherID            uuid.UUID          `json:"teacher_id"`
+	ClassID              uuid.UUID          `json:"class_id"`
+	SectionID            pgtype.UUID        `json:"section_id"`
+	SubjectID            uuid.UUID          `json:"subject_id"`
+	AcademicYearID       pgtype.UUID        `json:"academic_year_id"`
+	Topic                string             `json:"topic"`
+	LearningObjectives   *string            `json:"learning_objectives"`
+	Methodology          *string            `json:"methodology"`
+	Materials            *string            `json:"materials"`
+	AssessmentPlan       *string            `json:"assessment_plan"`
+	StartDate            pgtype.Date        `json:"start_date"`
+	EndDate              pgtype.Date        `json:"end_date"`
+	ActualCompletionDate pgtype.Date        `json:"actual_completion_date"`
+	Status               string             `json:"status"`
+	ReviewedBy           pgtype.UUID        `json:"reviewed_by"`
+	ReviewComments       *string            `json:"review_comments"`
+	Attachments          []byte             `json:"attachments"`
+	CreatedAt            pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt            pgtype.Timestamptz `json:"updated_at"`
 }
 
-type LibraryBook struct {
-	BookID          uuid.UUID      `json:"book_id"`
-	OrgID           uuid.UUID      `json:"org_id"`
-	Isbn            pgtype.Text    `json:"isbn"`
-	Title           string         `json:"title"`
-	Author          pgtype.Text    `json:"author"`
-	Publisher       pgtype.Text    `json:"publisher"`
-	PublicationYear pgtype.Int4    `json:"publication_year"`
-	Edition         pgtype.Text    `json:"edition"`
-	Category        pgtype.Text    `json:"category"`
-	Subject         pgtype.Text    `json:"subject"`
-	TotalCopies     pgtype.Int4    `json:"total_copies"`
-	AvailableCopies pgtype.Int4    `json:"available_copies"`
-	BookPrice       pgtype.Numeric `json:"book_price"`
-	AddedDate       pgtype.Date    `json:"added_date"`
-	BookStatus      pgtype.Text    `json:"book_status"`
-}
-
-type LibraryBookCopy struct {
-	CopyID          uuid.UUID        `json:"copy_id"`
-	OrgID           uuid.UUID        `json:"org_id"`
-	BookID          uuid.UUID        `json:"book_id"`
-	BarcodeNumber   string           `json:"barcode_number"`
-	CopyNumber      pgtype.Int4      `json:"copy_number"`
-	AcquisitionDate pgtype.Date      `json:"acquisition_date"`
-	CopyStatus      pgtype.Text      `json:"copy_status"`
-	CreatedAt       pgtype.Timestamp `json:"created_at"`
+type LibraryCatalog struct {
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	BookTitle       string             `json:"book_title"`
+	Author          *string            `json:"author"`
+	Isbn            *string            `json:"isbn"`
+	Publisher       *string            `json:"publisher"`
+	Edition         *string            `json:"edition"`
+	PublicationYear *int16             `json:"publication_year"`
+	Language        *string            `json:"language"`
+	Category        *string            `json:"category"`
+	TotalCopies     int32              `json:"total_copies"`
+	AvailableCopies int32              `json:"available_copies"`
+	RackNumber      *string            `json:"rack_number"`
+	ShelfNumber     *string            `json:"shelf_number"`
+	BookImageUrl    *string            `json:"book_image_url"`
+	Barcode         *string            `json:"barcode"`
+	Description     *string            `json:"description"`
+	Tags            []byte             `json:"tags"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
 type LibraryFine struct {
-	FineID        uuid.UUID      `json:"fine_id"`
-	TransactionID uuid.UUID      `json:"transaction_id"`
-	FineAmount    pgtype.Numeric `json:"fine_amount"`
-	FineDate      pgtype.Date    `json:"fine_date"`
-	IsPaid        pgtype.Bool    `json:"is_paid"`
-	PaidDate      pgtype.Date    `json:"paid_date"`
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	BookIssueID  uuid.UUID          `json:"book_issue_id"`
+	FinePerDay   pgtype.Numeric     `json:"fine_per_day"`
+	OverdueDays  int32              `json:"overdue_days"`
+	TotalFine    pgtype.Numeric     `json:"total_fine"`
+	PaidStatus   PaymentStatus      `json:"paid_status"`
+	PaidAmount   pgtype.Numeric     `json:"paid_amount"`
+	PaymentDate  pgtype.Date        `json:"payment_date"`
+	PaymentMode  *PaymentMode       `json:"payment_mode"`
+	Waived       bool               `json:"waived"`
+	WaivedBy     pgtype.UUID        `json:"waived_by"`
+	WaiverReason *string            `json:"waiver_reason"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type LibrarySetting struct {
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	MaxBooksPerStudent int16              `json:"max_books_per_student"`
+	MaxBooksPerStaff   int16              `json:"max_books_per_staff"`
+	LoanPeriodDays     int16              `json:"loan_period_days"`
+	FinePerDay         pgtype.Numeric     `json:"fine_per_day"`
+	MaxRenewals        int16              `json:"max_renewals"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Active and historical login sessions; used for session management and security auditing
+type LoginSession struct {
+	ID           uuid.UUID          `json:"id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	TenantID     pgtype.UUID        `json:"tenant_id"`
+	SessionToken string             `json:"session_token"`
+	RefreshToken *string            `json:"refresh_token"`
+	LoginTime    pgtype.Timestamptz `json:"login_time"`
+	LogoutTime   pgtype.Timestamptz `json:"logout_time"`
+	ExpiresAt    pgtype.Timestamptz `json:"expires_at"`
+	IpAddress    *netip.Addr        `json:"ip_address"`
+	DeviceInfo   []byte             `json:"device_info"`
+	GeoLocation  *string            `json:"geo_location"`
+	IsActive     bool               `json:"is_active"`
+	TerminatedBy *string            `json:"terminated_by"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	Jti          *string            `json:"jti"`
+	LoginMethod  *string            `json:"login_method"`
+}
+
+// Individual subject marks per student per exam; percentage is auto-computed
 type MarksEntry struct {
-	MarksEntryID   uuid.UUID        `json:"marks_entry_id"`
-	ExamScheduleID uuid.UUID        `json:"exam_schedule_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	MarksObtained  pgtype.Numeric   `json:"marks_obtained"`
-	EntryDate      pgtype.Timestamp `json:"entry_date"`
-	EnteredBy      pgtype.UUID      `json:"entered_by"`
-	IsAbsent       pgtype.Bool      `json:"is_absent"`
-	Remarks        pgtype.Text      `json:"remarks"`
+	ID            uuid.UUID          `json:"id"`
+	StudentID     uuid.UUID          `json:"student_id"`
+	ExamID        uuid.UUID          `json:"exam_id"`
+	SubjectID     uuid.UUID          `json:"subject_id"`
+	ClassID       uuid.UUID          `json:"class_id"`
+	ObtainedMarks pgtype.Numeric     `json:"obtained_marks"`
+	TotalMarks    pgtype.Numeric     `json:"total_marks"`
+	Percentage    pgtype.Numeric     `json:"percentage"`
+	GradeEntryID  pgtype.UUID        `json:"grade_entry_id"`
+	IsAbsent      bool               `json:"is_absent"`
+	Remarks       *string            `json:"remarks"`
+	EnteredBy     pgtype.UUID        `json:"entered_by"`
+	EnteredAt     pgtype.Timestamptz `json:"entered_at"`
+	VerifiedBy    pgtype.UUID        `json:"verified_by"`
+	VerifiedAt    pgtype.Timestamptz `json:"verified_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Message struct {
-	MessageID      uuid.UUID        `json:"message_id"`
-	SenderID       uuid.UUID        `json:"sender_id"`
-	RecipientID    uuid.UUID        `json:"recipient_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	Subject        pgtype.Text      `json:"subject"`
-	MessageContent string           `json:"message_content"`
-	AttachmentUrl  pgtype.Text      `json:"attachment_url"`
-	IsRead         pgtype.Bool      `json:"is_read"`
-	ReadDate       pgtype.Timestamp `json:"read_date"`
-	MessageType    pgtype.Text      `json:"message_type"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID          uuid.UUID `json:"id"`
+	TenantID    uuid.UUID `json:"tenant_id"`
+	FromUserID  uuid.UUID `json:"from_user_id"`
+	ToUserID    uuid.UUID `json:"to_user_id"`
+	Subject     *string   `json:"subject"`
+	MessageBody string    `json:"message_body"`
+	// References the original message for threaded conversations
+	ParentMessageID pgtype.UUID        `json:"parent_message_id"`
+	IsRead          bool               `json:"is_read"`
+	ReadAt          pgtype.Timestamptz `json:"read_at"`
+	AttachmentUrls  []byte             `json:"attachment_urls"`
+	IsArchived      bool               `json:"is_archived"`
+	SentAt          pgtype.Timestamptz `json:"sent_at"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
 }
 
+type MessageTemplate struct {
+	ID        uuid.UUID           `json:"id"`
+	TenantID  uuid.UUID           `json:"tenant_id"`
+	Name      string              `json:"name"`
+	Channel   NotificationChannel `json:"channel"`
+	Subject   *string             `json:"subject"`
+	Body      string              `json:"body"`
+	Variables []byte              `json:"variables"`
+	IsActive  bool                `json:"is_active"`
+	CreatedAt pgtype.Timestamptz  `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz  `json:"updated_at"`
+}
+
+// User MFA method enrollment. One row per user per method. TOTP secret encrypted at rest.
+type MfaConfig struct {
+	ID          uuid.UUID          `json:"id"`
+	UserID      uuid.UUID          `json:"user_id"`
+	TenantID    uuid.UUID          `json:"tenant_id"`
+	Method      MfaMethod          `json:"method"`
+	Secret      *string            `json:"secret"`
+	IsActive    bool               `json:"is_active"`
+	VerifiedAt  pgtype.Timestamptz `json:"verified_at"`
+	BackupCodes []byte             `json:"backup_codes"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
+}
+
+type Notification struct {
+	ID            uuid.UUID           `json:"id"`
+	TenantID      uuid.UUID           `json:"tenant_id"`
+	UserID        uuid.UUID           `json:"user_id"`
+	Title         string              `json:"title"`
+	Body          *string             `json:"body"`
+	Type          *string             `json:"type"`
+	Channel       NotificationChannel `json:"channel"`
+	ReferenceType *string             `json:"reference_type"`
+	ReferenceID   pgtype.UUID         `json:"reference_id"`
+	ActionUrl     *string             `json:"action_url"`
+	IsRead        bool                `json:"is_read"`
+	ReadAt        pgtype.Timestamptz  `json:"read_at"`
+	SentAt        pgtype.Timestamptz  `json:"sent_at"`
+	CreatedAt     pgtype.Timestamptz  `json:"created_at"`
+}
+
+// Delivery audit trail for all outbound notifications (SMS, email, push)
+type NotificationLog struct {
+	ID                uuid.UUID           `json:"id"`
+	NotificationID    pgtype.UUID         `json:"notification_id"`
+	TenantID          uuid.UUID           `json:"tenant_id"`
+	Recipient         *string             `json:"recipient"`
+	SentVia           NotificationChannel `json:"sent_via"`
+	Provider          *string             `json:"provider"`
+	ProviderMessageID *string             `json:"provider_message_id"`
+	Status            NotificationStatus  `json:"status"`
+	ErrorMessage      *string             `json:"error_message"`
+	Cost              pgtype.Numeric      `json:"cost"`
+	Payload           []byte              `json:"payload"`
+	SentAt            pgtype.Timestamptz  `json:"sent_at"`
+	DeliveredAt       pgtype.Timestamptz  `json:"delivered_at"`
+	CreatedAt         pgtype.Timestamptz  `json:"created_at"`
+}
+
+type OnlineClass struct {
+	ID            uuid.UUID          `json:"id"`
+	TenantID      uuid.UUID          `json:"tenant_id"`
+	ClassID       uuid.UUID          `json:"class_id"`
+	SectionID     pgtype.UUID        `json:"section_id"`
+	SubjectID     pgtype.UUID        `json:"subject_id"`
+	TeacherID     uuid.UUID          `json:"teacher_id"`
+	Title         string             `json:"title"`
+	MeetingUrl    string             `json:"meeting_url"`
+	Platform      *string            `json:"platform"`
+	ScheduledDate pgtype.Date        `json:"scheduled_date"`
+	StartTime     pgtype.Time        `json:"start_time"`
+	EndTime       pgtype.Time        `json:"end_time"`
+	RecordingUrl  *string            `json:"recording_url"`
+	IsRecurring   bool               `json:"is_recurring"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Payment gateway transaction records with full webhook audit trail
 type OnlinePayment struct {
-	PaymentID              uuid.UUID        `json:"payment_id"`
-	TransactionID          uuid.UUID        `json:"transaction_id"`
-	GatewayID              int32            `json:"gateway_id"`
-	GatewayTransactionID   pgtype.Text      `json:"gateway_transaction_id"`
-	PaymentGatewayResponse []byte           `json:"payment_gateway_response"`
-	PaymentStatus          pgtype.Text      `json:"payment_status"`
-	Amount                 pgtype.Numeric   `json:"amount"`
-	PaymentDate            pgtype.Timestamp `json:"payment_date"`
-	CreatedAt              pgtype.Timestamp `json:"created_at"`
+	ID               uuid.UUID          `json:"id"`
+	FeeCollectionID  pgtype.UUID        `json:"fee_collection_id"`
+	FeeInvoiceID     pgtype.UUID        `json:"fee_invoice_id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	GatewayName      string             `json:"gateway_name"`
+	GatewayOrderID   *string            `json:"gateway_order_id"`
+	GatewayPaymentID *string            `json:"gateway_payment_id"`
+	GatewaySignature *string            `json:"gateway_signature"`
+	Amount           pgtype.Numeric     `json:"amount"`
+	Currency         string             `json:"currency"`
+	GatewayStatus    *string            `json:"gateway_status"`
+	GatewayResponse  []byte             `json:"gateway_response"`
+	WebhookPayload   []byte             `json:"webhook_payload"`
+	WebhookVerified  *bool              `json:"webhook_verified"`
+	RefundID         *string            `json:"refund_id"`
+	RefundAmount     pgtype.Numeric     `json:"refund_amount"`
+	RefundStatus     *string            `json:"refund_status"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
-type Organization struct {
-	OrgID             uuid.UUID        `json:"org_id"`
-	OrgName           string           `json:"org_name"`
-	OrgCode           string           `json:"org_code"`
-	PhoneNumber       pgtype.Text      `json:"phone_number"`
-	Email             pgtype.Text      `json:"email"`
-	Website           pgtype.Text      `json:"website"`
-	LogoUrl           pgtype.Text      `json:"logo_url"`
-	Address           pgtype.Text      `json:"address"`
-	City              pgtype.Text      `json:"city"`
-	State             pgtype.Text      `json:"state"`
-	Country           pgtype.Text      `json:"country"`
-	PostalCode        pgtype.Text      `json:"postal_code"`
-	EstablishedDate   types.CustomDate `json:"established_date"`
-	AffiliationNumber pgtype.Text      `json:"affiliation_number"`
-	LicenseNumber     pgtype.Text      `json:"license_number"`
-	LicenseExpiry     types.CustomDate `json:"license_expiry"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
+// Parent / guardian records; linked to user accounts for portal access
+type Parent struct {
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	UserID           pgtype.UUID        `json:"user_id"`
+	FatherName       *string            `json:"father_name"`
+	MotherName       *string            `json:"mother_name"`
+	GuardianName     *string            `json:"guardian_name"`
+	FatherPhone      *string            `json:"father_phone"`
+	MotherPhone      *string            `json:"mother_phone"`
+	GuardianPhone    *string            `json:"guardian_phone"`
+	FatherEmail      *string            `json:"father_email"`
+	MotherEmail      *string            `json:"mother_email"`
+	Email            *string            `json:"email"`
+	FatherOccupation *string            `json:"father_occupation"`
+	MotherOccupation *string            `json:"mother_occupation"`
+	Address          *string            `json:"address"`
+	City             *string            `json:"city"`
+	State            *string            `json:"state"`
+	Pincode          *string            `json:"pincode"`
+	AnnualIncome     pgtype.Numeric     `json:"annual_income"`
+	Metadata         []byte             `json:"metadata"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt        pgtype.Timestamptz `json:"deleted_at"`
 }
 
-type ParentStudentMapping struct {
-	MappingID      uuid.UUID        `json:"mapping_id"`
-	ParentID       uuid.UUID        `json:"parent_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	Relationship   pgtype.Text      `json:"relationship"`
-	PrimaryContact pgtype.Bool      `json:"primary_contact"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+// Stores hashed previous passwords to enforce password reuse prevention. Only most recent N entries are kept.
+type PasswordHistory struct {
+	ID           uuid.UUID          `json:"id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	PasswordHash string             `json:"password_hash"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
 }
 
-type PaymentGateway struct {
-	GatewayID   int32            `json:"gateway_id"`
-	OrgID       uuid.UUID        `json:"org_id"`
-	GatewayName pgtype.Text      `json:"gateway_name"`
-	ApiKey      pgtype.Text      `json:"api_key"`
-	ApiSecret   pgtype.Text      `json:"api_secret"`
-	MerchantID  pgtype.Text      `json:"merchant_id"`
-	IsActive    pgtype.Bool      `json:"is_active"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
+// One-use password reset tokens. Token hash stored (never plaintext). Expires after 24h by default.
+type PasswordResetToken struct {
+	ID        uuid.UUID          `json:"id"`
+	UserID    uuid.UUID          `json:"user_id"`
+	TokenHash string             `json:"token_hash"`
+	ExpiresAt pgtype.Timestamptz `json:"expires_at"`
+	IsUsed    bool               `json:"is_used"`
+	UsedAt    pgtype.Timestamptz `json:"used_at"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
 }
 
 type Payroll struct {
-	PayrollID      uuid.UUID        `json:"payroll_id"`
-	StaffID        uuid.UUID        `json:"staff_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	AcademicYearID pgtype.UUID      `json:"academic_year_id"`
-	MonthOfPayroll pgtype.Int4      `json:"month_of_payroll"`
-	YearOfPayroll  pgtype.Int4      `json:"year_of_payroll"`
-	BasicSalary    pgtype.Numeric   `json:"basic_salary"`
-	Allowances     []byte           `json:"allowances"`
-	Deductions     []byte           `json:"deductions"`
-	GrossSalary    pgtype.Numeric   `json:"gross_salary"`
-	NetSalary      pgtype.Numeric   `json:"net_salary"`
-	PaymentDate    pgtype.Date      `json:"payment_date"`
-	PaymentMethod  pgtype.Text      `json:"payment_method"`
-	PaymentStatus  pgtype.Text      `json:"payment_status"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	StaffID         uuid.UUID          `json:"staff_id"`
+	Month           int16              `json:"month"`
+	Year            int16              `json:"year"`
+	WorkingDays     *int16             `json:"working_days"`
+	PresentDays     *int16             `json:"present_days"`
+	BasicSalary     pgtype.Numeric     `json:"basic_salary"`
+	Earnings        []byte             `json:"earnings"`
+	Deductions      []byte             `json:"deductions"`
+	GrossSalary     pgtype.Numeric     `json:"gross_salary"`
+	TotalDeductions pgtype.Numeric     `json:"total_deductions"`
+	NetSalary       pgtype.Numeric     `json:"net_salary"`
+	PaymentDate     pgtype.Date        `json:"payment_date"`
+	PaymentMode     *PaymentMode       `json:"payment_mode"`
+	TransactionRef  *string            `json:"transaction_ref"`
+	Status          PayrollStatus      `json:"status"`
+	GeneratedBy     pgtype.UUID        `json:"generated_by"`
+	ApprovedBy      pgtype.UUID        `json:"approved_by"`
+	Remarks         *string            `json:"remarks"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
+type PerformanceEvaluation struct {
+	ID                  uuid.UUID          `json:"id"`
+	TenantID            uuid.UUID          `json:"tenant_id"`
+	StaffID             uuid.UUID          `json:"staff_id"`
+	AcademicYearID      pgtype.UUID        `json:"academic_year_id"`
+	EvaluationDate      pgtype.Date        `json:"evaluation_date"`
+	EvaluatorID         uuid.UUID          `json:"evaluator_id"`
+	Rating              int16              `json:"rating"`
+	Categories          []byte             `json:"categories"`
+	Strengths           *string            `json:"strengths"`
+	Improvements        *string            `json:"improvements"`
+	Comments            *string            `json:"comments"`
+	Goals               []byte             `json:"goals"`
+	SelfAssessment      []byte             `json:"self_assessment"`
+	Status              ApprovalStatus     `json:"status"`
+	AcknowledgedByStaff bool               `json:"acknowledged_by_staff"`
+	AcknowledgedAt      pgtype.Timestamptz `json:"acknowledged_at"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
+}
+
+type PeriodDefinition struct {
+	ID        uuid.UUID          `json:"id"`
+	TenantID  uuid.UUID          `json:"tenant_id"`
+	Name      string             `json:"name"`
+	Sequence  int16              `json:"sequence"`
+	StartTime pgtype.Time        `json:"start_time"`
+	EndTime   pgtype.Time        `json:"end_time"`
+	IsBreak   bool               `json:"is_break"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+}
+
+// Granular module-level permissions (view/create/edit/delete/export)
 type Permission struct {
-	PermissionID   int32            `json:"permission_id"`
-	PermissionName string           `json:"permission_name"`
-	Description    pgtype.Text      `json:"description"`
-	Module         pgtype.Text      `json:"module"`
-	Action         pgtype.Text      `json:"action"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID          uuid.UUID          `json:"id"`
+	Module      string             `json:"module"`
+	Action      string             `json:"action"`
+	Description *string            `json:"description"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
 }
 
-type ReportCard struct {
-	ReportCardID   uuid.UUID        `json:"report_card_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	ExamID         pgtype.UUID      `json:"exam_id"`
-	SectionID      uuid.UUID        `json:"section_id"`
-	GeneratedDate  pgtype.Timestamp `json:"generated_date"`
-	GeneratedBy    pgtype.UUID      `json:"generated_by"`
-	ReportCardData []byte           `json:"report_card_data"`
-	IsPrinted      pgtype.Bool      `json:"is_printed"`
-	PrintedDate    pgtype.Timestamp `json:"printed_date"`
-	SignedBy       pgtype.UUID      `json:"signed_by"`
+type ReportCardTemplate struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	TemplateName string             `json:"template_name"`
+	Layout       []byte             `json:"layout"`
+	HeaderHtml   *string            `json:"header_html"`
+	FooterHtml   *string            `json:"footer_html"`
+	IsDefault    bool               `json:"is_default"`
+	CreatedBy    pgtype.UUID        `json:"created_by"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type Result struct {
+	ID            uuid.UUID          `json:"id"`
+	StudentID     uuid.UUID          `json:"student_id"`
+	ExamID        uuid.UUID          `json:"exam_id"`
+	ClassID       uuid.UUID          `json:"class_id"`
+	TotalObtained pgtype.Numeric     `json:"total_obtained"`
+	TotalMax      pgtype.Numeric     `json:"total_max"`
+	Percentage    pgtype.Numeric     `json:"percentage"`
+	GradeEntryID  pgtype.UUID        `json:"grade_entry_id"`
+	Gpa           pgtype.Numeric     `json:"gpa"`
+	Rank          *int32             `json:"rank"`
+	Status        *string            `json:"status"`
+	Remarks       *string            `json:"remarks"`
+	IsPublished   bool               `json:"is_published"`
+	PublishedAt   pgtype.Timestamptz `json:"published_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
+}
+
+// RBAC roles. tenant_id = NULL means platform-level (Super Admin).
 type Role struct {
-	RoleID      int32            `json:"role_id"`
-	RoleName    string           `json:"role_name"`
-	Description pgtype.Text      `json:"description"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	ID          uuid.UUID   `json:"id"`
+	TenantID    pgtype.UUID `json:"tenant_id"`
+	Name        string      `json:"name"`
+	Slug        string      `json:"slug"`
+	Description *string     `json:"description"`
+	// System-seeded roles (Admin, Teacher, Student, etc.) cannot be deleted
+	IsSystem  bool               `json:"is_system"`
+	IsActive  bool               `json:"is_active"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
 }
 
 type RolePermission struct {
-	RoleID       int32     `json:"role_id"`
-	PermissionID int32     `json:"permission_id"`
-	OrgID        uuid.UUID `json:"org_id"`
+	ID           uuid.UUID          `json:"id"`
+	RoleID       uuid.UUID          `json:"role_id"`
+	PermissionID uuid.UUID          `json:"permission_id"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type SalaryComponent struct {
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Name         string             `json:"name"`
+	Type         string             `json:"type"`
+	IsTaxable    bool               `json:"is_taxable"`
+	IsFixed      bool               `json:"is_fixed"`
+	PercentageOf *string            `json:"percentage_of"`
+	IsActive     bool               `json:"is_active"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+}
+
+type Scholarship struct {
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	StudentID          uuid.UUID          `json:"student_id"`
+	ScholarshipName    string             `json:"scholarship_name"`
+	ScholarshipType    *string            `json:"scholarship_type"`
+	PercentageDiscount pgtype.Numeric     `json:"percentage_discount"`
+	AmountDiscount     pgtype.Numeric     `json:"amount_discount"`
+	ValidFrom          pgtype.Date        `json:"valid_from"`
+	ValidTo            pgtype.Date        `json:"valid_to"`
+	FeeTypesApplicable []byte             `json:"fee_types_applicable"`
+	Status             ApprovalStatus     `json:"status"`
+	ApprovedBy         pgtype.UUID        `json:"approved_by"`
+	ApprovedAt         pgtype.Timestamptz `json:"approved_at"`
+	Remarks            *string            `json:"remarks"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Section struct {
-	SectionID      uuid.UUID        `json:"section_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	ClassLevelID   uuid.UUID        `json:"class_level_id"`
-	StreamID       pgtype.UUID      `json:"stream_id"`
-	SectionName    string           `json:"section_name"`
-	SectionCode    string           `json:"section_code"`
-	ClassTeacherID pgtype.UUID      `json:"class_teacher_id"`
-	Capacity       pgtype.Int4      `json:"capacity"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID      uuid.UUID `json:"id"`
+	ClassID uuid.UUID `json:"class_id"`
+	Name    string    `json:"name"`
+	// The class teacher / homeroom teacher for this section
+	TeacherID   pgtype.UUID        `json:"teacher_id"`
+	MaxStudents *int32             `json:"max_students"`
+	CreatedAt   pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt   pgtype.Timestamptz `json:"updated_at"`
 }
 
-type SmsGateway struct {
-	SmsGatewayID int32            `json:"sms_gateway_id"`
-	OrgID        uuid.UUID        `json:"org_id"`
-	GatewayName  pgtype.Text      `json:"gateway_name"`
-	ApiKey       pgtype.Text      `json:"api_key"`
-	ApiUrl       pgtype.Text      `json:"api_url"`
-	SenderID     pgtype.Text      `json:"sender_id"`
-	IsActive     pgtype.Bool      `json:"is_active"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+// Per-tenant security policy: password complexity, account lockout, session limits, MFA. NULL tenant = platform default.
+type SecuritySetting struct {
+	ID                           uuid.UUID          `json:"id"`
+	TenantID                     pgtype.UUID        `json:"tenant_id"`
+	PasswordMinLength            int32              `json:"password_min_length"`
+	PasswordMaxLength            int32              `json:"password_max_length"`
+	PasswordMinUppercase         int32              `json:"password_min_uppercase"`
+	PasswordMinLowercase         int32              `json:"password_min_lowercase"`
+	PasswordMinNumbers           int32              `json:"password_min_numbers"`
+	PasswordMinSpecialChars      int32              `json:"password_min_special_chars"`
+	MaxFailedLoginAttempts       int32              `json:"max_failed_login_attempts"`
+	LockoutObservationWindowMins int32              `json:"lockout_observation_window_mins"`
+	LockoutDurationMins          int32              `json:"lockout_duration_mins"`
+	PasswordHistoryCount         int32              `json:"password_history_count"`
+	PasswordExpiryDays           int32              `json:"password_expiry_days"`
+	ForcePasswordChangeOnFirst   bool               `json:"force_password_change_on_first"`
+	MaxConcurrentSessions        int32              `json:"max_concurrent_sessions"`
+	InactivityLogoutMins         int32              `json:"inactivity_logout_mins"`
+	AccessTokenTtlMins           int32              `json:"access_token_ttl_mins"`
+	RefreshTokenTtlDays          int32              `json:"refresh_token_ttl_days"`
+	MfaRequired                  bool               `json:"mfa_required"`
+	MfaMethods                   []byte             `json:"mfa_methods"`
+	CreatedAt                    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                    pgtype.Timestamptz `json:"updated_at"`
 }
 
-type SmsNotification struct {
-	SmsID            uuid.UUID        `json:"sms_id"`
-	OrgID            pgtype.UUID      `json:"org_id"`
-	RecipientPhone   pgtype.Text      `json:"recipient_phone"`
-	MessageContent   pgtype.Text      `json:"message_content"`
-	NotificationType pgtype.Text      `json:"notification_type"`
-	SentBy           pgtype.UUID      `json:"sent_by"`
-	SentDate         pgtype.Timestamp `json:"sent_date"`
-	DeliveryStatus   pgtype.Text      `json:"delivery_status"`
-	DeliveryResponse pgtype.Text      `json:"delivery_response"`
-}
-
+// HR records for all school employees; linked to users table for authentication
 type Staff struct {
-	StaffID           uuid.UUID        `json:"staff_id"`
-	UserID            uuid.UUID        `json:"user_id"`
-	OrgID             uuid.UUID        `json:"org_id"`
-	EmployeeID        string           `json:"employee_id"`
-	Designation       pgtype.Text      `json:"designation"`
-	Department        pgtype.Text      `json:"department"`
-	Qualification     pgtype.Text      `json:"qualification"`
-	Specialization    pgtype.Text      `json:"specialization"`
-	DateOfJoining     pgtype.Date      `json:"date_of_joining"`
-	DateOfBirth       pgtype.Date      `json:"date_of_birth"`
-	EmployeeStatus    pgtype.Text      `json:"employee_status"`
-	BankAccountNumber pgtype.Text      `json:"bank_account_number"`
-	BankName          pgtype.Text      `json:"bank_name"`
-	IfscCode          pgtype.Text      `json:"ifsc_code"`
-	PanNumber         pgtype.Text      `json:"pan_number"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
+	ID                    uuid.UUID          `json:"id"`
+	TenantID              uuid.UUID          `json:"tenant_id"`
+	UserID                pgtype.UUID        `json:"user_id"`
+	EmployeeID            string             `json:"employee_id"`
+	FirstName             string             `json:"first_name"`
+	LastName              *string            `json:"last_name"`
+	Designation           string             `json:"designation"`
+	DepartmentID          pgtype.UUID        `json:"department_id"`
+	DateOfBirth           pgtype.Date        `json:"date_of_birth"`
+	Gender                *GenderType        `json:"gender"`
+	Qualification         *string            `json:"qualification"`
+	Specialization        *string            `json:"specialization"`
+	ExperienceYears       pgtype.Numeric     `json:"experience_years"`
+	JoiningDate           pgtype.Date        `json:"joining_date"`
+	ConfirmationDate      pgtype.Date        `json:"confirmation_date"`
+	ResignationDate       pgtype.Date        `json:"resignation_date"`
+	LastWorkingDate       pgtype.Date        `json:"last_working_date"`
+	EmploymentType        *string            `json:"employment_type"`
+	BasicSalary           pgtype.Numeric     `json:"basic_salary"`
+	BankName              *string            `json:"bank_name"`
+	BankAccount           *string            `json:"bank_account"`
+	BankIfsc              *string            `json:"bank_ifsc"`
+	PanNumber             *string            `json:"pan_number"`
+	UanNumber             *string            `json:"uan_number"`
+	Address               *string            `json:"address"`
+	Phone                 *string            `json:"phone"`
+	EmergencyContactName  *string            `json:"emergency_contact_name"`
+	EmergencyContactPhone *string            `json:"emergency_contact_phone"`
+	PhotoUrl              *string            `json:"photo_url"`
+	IsActive              bool               `json:"is_active"`
+	Metadata              []byte             `json:"metadata"`
+	CreatedAt             pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt             pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt             pgtype.Timestamptz `json:"deleted_at"`
 }
 
-type StaffAttendance struct {
-	StaffAttendanceID uuid.UUID        `json:"staff_attendance_id"`
-	StaffID           uuid.UUID        `json:"staff_id"`
-	AttendanceDate    pgtype.Date      `json:"attendance_date"`
-	CheckInTime       pgtype.Time      `json:"check_in_time"`
-	CheckOutTime      pgtype.Time      `json:"check_out_time"`
-	Status            string           `json:"status"`
-	BiometricID       pgtype.Text      `json:"biometric_id"`
-	MarkedBy          pgtype.UUID      `json:"marked_by"`
-	Remarks           pgtype.Text      `json:"remarks"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-}
-
-type StaffPerformanceEvaluation struct {
-	EvaluationID            uuid.UUID        `json:"evaluation_id"`
-	StaffID                 uuid.UUID        `json:"staff_id"`
-	OrgID                   uuid.UUID        `json:"org_id"`
-	AcademicYearID          uuid.UUID        `json:"academic_year_id"`
-	EvaluationPeriod        pgtype.Text      `json:"evaluation_period"`
-	OverallRating           pgtype.Numeric   `json:"overall_rating"`
-	AttendanceRating        pgtype.Numeric   `json:"attendance_rating"`
-	TeachingQuality         pgtype.Numeric   `json:"teaching_quality"`
-	StudentFeedback         pgtype.Numeric   `json:"student_feedback"`
-	ProfessionalDevelopment pgtype.Numeric   `json:"professional_development"`
-	Comments                pgtype.Text      `json:"comments"`
-	EvaluatedBy             pgtype.UUID      `json:"evaluated_by"`
-	EvaluationDate          pgtype.Timestamp `json:"evaluation_date"`
-	CreatedAt               pgtype.Timestamp `json:"created_at"`
-}
-
-type StaffSubjectAssignment struct {
-	AssignmentID   uuid.UUID        `json:"assignment_id"`
-	StaffID        uuid.UUID        `json:"staff_id"`
-	SubjectID      uuid.UUID        `json:"subject_id"`
-	SectionID      uuid.UUID        `json:"section_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	AssignedDate   pgtype.Date      `json:"assigned_date"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-}
-
-type Stream struct {
-	StreamID    uuid.UUID        `json:"stream_id"`
-	StreamName  string           `json:"stream_name"`
-	StreamCode  string           `json:"stream_code"`
-	Description pgtype.Text      `json:"description"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
-}
-
+// Core student records; one row per enrolled student per tenant
 type Student struct {
-	StudentID             uuid.UUID        `json:"student_id"`
-	UserID                uuid.UUID        `json:"user_id"`
-	OrgID                 uuid.UUID        `json:"org_id"`
-	AdmissionNumber       string           `json:"admission_number"`
-	AdmissionDate         pgtype.Date      `json:"admission_date"`
-	AdmissionClassLevelID pgtype.UUID      `json:"admission_class_level_id"`
-	AdmissionStreamID     pgtype.UUID      `json:"admission_stream_id"`
-	RollNumber            pgtype.Text      `json:"roll_number"`
-	MotherName            pgtype.Text      `json:"mother_name"`
-	FatherName            pgtype.Text      `json:"father_name"`
-	GuardianName          pgtype.Text      `json:"guardian_name"`
-	GuardianPhone         pgtype.Text      `json:"guardian_phone"`
-	GuardianEmail         pgtype.Text      `json:"guardian_email"`
-	EmergencyContact1     pgtype.Text      `json:"emergency_contact_1"`
-	EmergencyContact2     pgtype.Text      `json:"emergency_contact_2"`
-	BloodGroup            pgtype.Text      `json:"blood_group"`
-	AadharNumber          pgtype.Text      `json:"aadhar_number"`
-	BirthPlace            pgtype.Text      `json:"birth_place"`
-	Nationality           pgtype.Text      `json:"nationality"`
-	Religion              pgtype.Text      `json:"religion"`
-	Caste                 pgtype.Text      `json:"caste"`
-	Status                pgtype.Text      `json:"status"`
-	CreatedAt             pgtype.Timestamp `json:"created_at"`
-	UpdatedAt             pgtype.Timestamp `json:"updated_at"`
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	UserID          pgtype.UUID        `json:"user_id"`
+	AdmissionNumber string             `json:"admission_number"`
+	RollNumber      *string            `json:"roll_number"`
+	FirstName       string             `json:"first_name"`
+	LastName        *string            `json:"last_name"`
+	DateOfBirth     pgtype.Date        `json:"date_of_birth"`
+	Gender          GenderType         `json:"gender"`
+	BloodGroup      *BloodGroupType    `json:"blood_group"`
+	Religion        *string            `json:"religion"`
+	Caste           *string            `json:"caste"`
+	Nationality     *string            `json:"nationality"`
+	MotherTongue    *string            `json:"mother_tongue"`
+	AadhaarNumber   *string            `json:"aadhaar_number"`
+	AdmissionDate   pgtype.Date        `json:"admission_date"`
+	ClassID         uuid.UUID          `json:"class_id"`
+	SectionID       pgtype.UUID        `json:"section_id"`
+	ParentID        pgtype.UUID        `json:"parent_id"`
+	PreviousSchool  *string            `json:"previous_school"`
+	Address         *string            `json:"address"`
+	PhotoUrl        *string            `json:"photo_url"`
+	IsActive        bool               `json:"is_active"`
+	Status          string             `json:"status"`
+	Metadata        []byte             `json:"metadata"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt       pgtype.Timestamptz `json:"deleted_at"`
 }
 
+// Daily attendance records for students; one row per student per date
 type StudentAttendance struct {
-	AttendanceID   uuid.UUID        `json:"attendance_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	SectionID      uuid.UUID        `json:"section_id"`
-	AttendanceDate pgtype.Date      `json:"attendance_date"`
-	Status         string           `json:"status"`
-	MarkedBy       pgtype.UUID      `json:"marked_by"`
-	MarkedTime     pgtype.Timestamp `json:"marked_time"`
-	Remarks        pgtype.Text      `json:"remarks"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID           uuid.UUID          `json:"id"`
+	StudentID    uuid.UUID          `json:"student_id"`
+	ClassID      uuid.UUID          `json:"class_id"`
+	SectionID    pgtype.UUID        `json:"section_id"`
+	Date         pgtype.Date        `json:"date"`
+	Status       AttendanceStatus   `json:"status"`
+	CheckInTime  pgtype.Time        `json:"check_in_time"`
+	CheckOutTime pgtype.Time        `json:"check_out_time"`
+	Remarks      *string            `json:"remarks"`
+	MarkedBy     pgtype.UUID        `json:"marked_by"`
+	MarkedAt     pgtype.Timestamptz `json:"marked_at"`
+	Source       *string            `json:"source"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
 type StudentDocument struct {
-	DocumentID       uuid.UUID        `json:"document_id"`
-	StudentID        uuid.UUID        `json:"student_id"`
-	DocumentType     pgtype.Text      `json:"document_type"`
-	DocumentName     pgtype.Text      `json:"document_name"`
-	FilePath         pgtype.Text      `json:"file_path"`
-	UploadDate       pgtype.Timestamp `json:"upload_date"`
-	ExpiryDate       pgtype.Date      `json:"expiry_date"`
-	Verified         pgtype.Bool      `json:"verified"`
-	VerifiedBy       pgtype.UUID      `json:"verified_by"`
-	VerificationDate pgtype.Timestamp `json:"verification_date"`
+	ID            uuid.UUID          `json:"id"`
+	StudentID     uuid.UUID          `json:"student_id"`
+	DocumentType  DocumentType       `json:"document_type"`
+	DocumentName  *string            `json:"document_name"`
+	DocumentUrl   string             `json:"document_url"`
+	FileSizeBytes *int64             `json:"file_size_bytes"`
+	MimeType      *string            `json:"mime_type"`
+	UploadedBy    pgtype.UUID        `json:"uploaded_by"`
+	UploadedAt    pgtype.Timestamptz `json:"uploaded_at"`
+	Verified      bool               `json:"verified"`
+	VerifiedBy    pgtype.UUID        `json:"verified_by"`
+	VerifiedAt    pgtype.Timestamptz `json:"verified_at"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
 }
 
-type StudentEnrollment struct {
-	EnrollmentID   uuid.UUID        `json:"enrollment_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	SectionID      uuid.UUID        `json:"section_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	EnrollmentDate pgtype.Date      `json:"enrollment_date"`
-	Status         pgtype.Text      `json:"status"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-}
-
+// Periodic health check data for students
 type StudentHealthRecord struct {
-	HealthRecordID    uuid.UUID        `json:"health_record_id"`
-	StudentID         uuid.UUID        `json:"student_id"`
-	BloodGroup        pgtype.Text      `json:"blood_group"`
-	Height            pgtype.Numeric   `json:"height"`
-	Weight            pgtype.Numeric   `json:"weight"`
-	VisionLeft        pgtype.Text      `json:"vision_left"`
-	VisionRight       pgtype.Text      `json:"vision_right"`
-	HearingStatus     pgtype.Text      `json:"hearing_status"`
-	Allergies         pgtype.Text      `json:"allergies"`
-	MedicalConditions pgtype.Text      `json:"medical_conditions"`
-	Vaccinations      []byte           `json:"vaccinations"`
-	LastCheckupDate   pgtype.Date      `json:"last_checkup_date"`
-	Notes             pgtype.Text      `json:"notes"`
-	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
+	ID                       uuid.UUID          `json:"id"`
+	StudentID                uuid.UUID          `json:"student_id"`
+	HeightCm                 pgtype.Numeric     `json:"height_cm"`
+	WeightKg                 pgtype.Numeric     `json:"weight_kg"`
+	Bmi                      pgtype.Numeric     `json:"bmi"`
+	BloodPressure            *string            `json:"blood_pressure"`
+	VisionLeft               *string            `json:"vision_left"`
+	VisionRight              *string            `json:"vision_right"`
+	Allergies                *string            `json:"allergies"`
+	MedicalConditions        *string            `json:"medical_conditions"`
+	Medications              *string            `json:"medications"`
+	EmergencyContactName     *string            `json:"emergency_contact_name"`
+	EmergencyContactPhone    *string            `json:"emergency_contact_phone"`
+	EmergencyContactRelation *string            `json:"emergency_contact_relation"`
+	InsuranceProvider        *string            `json:"insurance_provider"`
+	InsuranceNumber          *string            `json:"insurance_number"`
+	LastCheckupDate          pgtype.Date        `json:"last_checkup_date"`
+	DoctorName               *string            `json:"doctor_name"`
+	Remarks                  *string            `json:"remarks"`
+	RecordedBy               pgtype.UUID        `json:"recorded_by"`
+	CreatedAt                pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                pgtype.Timestamptz `json:"updated_at"`
 }
 
-type StudentPerformanceSummary struct {
-	SummaryID            uuid.UUID        `json:"summary_id"`
-	StudentID            uuid.UUID        `json:"student_id"`
-	AcademicYearID       uuid.UUID        `json:"academic_year_id"`
-	OrgID                uuid.UUID        `json:"org_id"`
-	TotalClasses         pgtype.Int4      `json:"total_classes"`
-	TotalPresent         pgtype.Int4      `json:"total_present"`
-	AttendancePercentage pgtype.Numeric   `json:"attendance_percentage"`
-	AverageMarks         pgtype.Numeric   `json:"average_marks"`
-	PerformanceStatus    pgtype.Text      `json:"performance_status"`
-	UpdatedAt            pgtype.Timestamp `json:"updated_at"`
-}
-
+// Tracks year-over-year class promotions and retentions
 type StudentPromotion struct {
-	PromotionID      uuid.UUID        `json:"promotion_id"`
-	StudentID        uuid.UUID        `json:"student_id"`
-	FromClassLevelID uuid.UUID        `json:"from_class_level_id"`
-	ToClassLevelID   uuid.UUID        `json:"to_class_level_id"`
-	FromSectionID    pgtype.UUID      `json:"from_section_id"`
-	ToSectionID      pgtype.UUID      `json:"to_section_id"`
-	FromStreamID     pgtype.UUID      `json:"from_stream_id"`
-	ToStreamID       pgtype.UUID      `json:"to_stream_id"`
-	AcademicYearID   uuid.UUID        `json:"academic_year_id"`
-	PromotionDate    pgtype.Date      `json:"promotion_date"`
-	PromotionStatus  string           `json:"promotion_status"`
-	Remarks          pgtype.Text      `json:"remarks"`
-	ApprovedBy       pgtype.UUID      `json:"approved_by"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	ID                 uuid.UUID          `json:"id"`
+	StudentID          uuid.UUID          `json:"student_id"`
+	FromClassID        uuid.UUID          `json:"from_class_id"`
+	ToClassID          uuid.UUID          `json:"to_class_id"`
+	FromSectionID      pgtype.UUID        `json:"from_section_id"`
+	ToSectionID        pgtype.UUID        `json:"to_section_id"`
+	FromAcademicYearID uuid.UUID          `json:"from_academic_year_id"`
+	ToAcademicYearID   uuid.UUID          `json:"to_academic_year_id"`
+	PromotionDate      pgtype.Date        `json:"promotion_date"`
+	Status             string             `json:"status"`
+	Remarks            *string            `json:"remarks"`
+	PromotedBy         pgtype.UUID        `json:"promoted_by"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
 }
 
 type StudentRouteAllocation struct {
-	AllocationID   uuid.UUID        `json:"allocation_id"`
-	StudentID      uuid.UUID        `json:"student_id"`
-	RouteID        uuid.UUID        `json:"route_id"`
-	VehicleID      uuid.UUID        `json:"vehicle_id"`
-	StopID         uuid.UUID        `json:"stop_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	AllocationDate pgtype.Date      `json:"allocation_date"`
-	IsActive       pgtype.Bool      `json:"is_active"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID                  uuid.UUID          `json:"id"`
+	StudentID           uuid.UUID          `json:"student_id"`
+	RouteID             uuid.UUID          `json:"route_id"`
+	VehicleID           pgtype.UUID        `json:"vehicle_id"`
+	PickupStop          *string            `json:"pickup_stop"`
+	DropoffStop         *string            `json:"dropoff_stop"`
+	PickupTime          pgtype.Time        `json:"pickup_time"`
+	DropoffTime         pgtype.Time        `json:"dropoff_time"`
+	TransportFeeMonthly pgtype.Numeric     `json:"transport_fee_monthly"`
+	IsActive            bool               `json:"is_active"`
+	EffectiveFrom       pgtype.Date        `json:"effective_from"`
+	EffectiveTo         pgtype.Date        `json:"effective_to"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt           pgtype.Timestamptz `json:"updated_at"`
 }
 
 type Subject struct {
-	SubjectID   uuid.UUID        `json:"subject_id"`
-	SubjectName string           `json:"subject_name"`
-	SubjectCode string           `json:"subject_code"`
-	Description pgtype.Text      `json:"description"`
-	IsMandatory pgtype.Bool      `json:"is_mandatory"`
-	CreatedAt   pgtype.Timestamp `json:"created_at"`
+	ID           uuid.UUID          `json:"id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Name         string             `json:"name"`
+	Code         string             `json:"code"`
+	DepartmentID pgtype.UUID        `json:"department_id"`
+	GradeID      pgtype.UUID        `json:"grade_id"`
+	IsElective   bool               `json:"is_elective"`
+	Credits      pgtype.Numeric     `json:"credits"`
+	Description  *string            `json:"description"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
-type SubjectSyllabus struct {
-	SyllabusID       uuid.UUID        `json:"syllabus_id"`
-	SubjectID        uuid.UUID        `json:"subject_id"`
-	AcademicYearID   uuid.UUID        `json:"academic_year_id"`
-	Curriculum       pgtype.Text      `json:"curriculum"`
-	LearningOutcomes pgtype.Text      `json:"learning_outcomes"`
-	TeachingMethod   pgtype.Text      `json:"teaching_method"`
-	AssessmentMethod pgtype.Text      `json:"assessment_method"`
-	CreatedAt        pgtype.Timestamp `json:"created_at"`
+// Defines available subscription tiers for tenants
+type SubscriptionPlan struct {
+	ID            uuid.UUID          `json:"id"`
+	Name          string             `json:"name"`
+	BillingPeriod BillingPeriod      `json:"billing_period"`
+	Price         pgtype.Numeric     `json:"price"`
+	MaxStudents   *int32             `json:"max_students"`
+	MaxUsers      *int32             `json:"max_users"`
+	MaxStorageGb  *int32             `json:"max_storage_gb"`
+	Features      []byte             `json:"features"`
+	IsActive      bool               `json:"is_active"`
+	CreatedAt     pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt     pgtype.Timestamptz `json:"updated_at"`
 }
 
 type SystemSetting struct {
-	SettingID    uuid.UUID        `json:"setting_id"`
-	SettingKey   string           `json:"setting_key"`
-	SettingValue pgtype.Text      `json:"setting_value"`
-	SettingType  pgtype.Text      `json:"setting_type"`
-	Description  pgtype.Text      `json:"description"`
-	IsEditable   pgtype.Bool      `json:"is_editable"`
-	OrgID        pgtype.UUID      `json:"org_id"`
-	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+	ID           uuid.UUID          `json:"id"`
+	TenantID     pgtype.UUID        `json:"tenant_id"`
+	SettingKey   string             `json:"setting_key"`
+	SettingValue []byte             `json:"setting_value"`
+	Description  *string            `json:"description"`
+	IsPublic     bool               `json:"is_public"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
 }
 
+type TeacherAttendance struct {
+	ID           uuid.UUID          `json:"id"`
+	TeacherID    uuid.UUID          `json:"teacher_id"`
+	TenantID     uuid.UUID          `json:"tenant_id"`
+	Date         pgtype.Date        `json:"date"`
+	Status       AttendanceStatus   `json:"status"`
+	CheckInTime  pgtype.Time        `json:"check_in_time"`
+	CheckOutTime pgtype.Time        `json:"check_out_time"`
+	WorkHours    pgtype.Numeric     `json:"work_hours"`
+	Remarks      *string            `json:"remarks"`
+	MarkedBy     pgtype.UUID        `json:"marked_by"`
+	Source       *string            `json:"source"`
+	CreatedAt    pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt    pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Each row represents a school (tenant). All child data is scoped by tenant_id.
+type Tenant struct {
+	ID   uuid.UUID `json:"id"`
+	Name string    `json:"name"`
+	// Unique subdomain used in URL: {subdomain}.erp.com
+	Subdomain             string             `json:"subdomain"`
+	Slug                  string             `json:"slug"`
+	LogoUrl               *string            `json:"logo_url"`
+	Timezone              string             `json:"timezone"`
+	Country               *string            `json:"country"`
+	State                 *string            `json:"state"`
+	City                  *string            `json:"city"`
+	Address               *string            `json:"address"`
+	Pincode               *string            `json:"pincode"`
+	ContactEmail          *string            `json:"contact_email"`
+	ContactPhone          *string            `json:"contact_phone"`
+	Website               *string            `json:"website"`
+	Status                TenantStatus       `json:"status"`
+	SubscriptionPlanID    pgtype.UUID        `json:"subscription_plan_id"`
+	SubscriptionStartDate pgtype.Date        `json:"subscription_start_date"`
+	SubscriptionEndDate   pgtype.Date        `json:"subscription_end_date"`
+	TrialEndsAt           pgtype.Timestamptz `json:"trial_ends_at"`
+	// API key for external integrations; rotated periodically
+	ApiKey    *string            `json:"api_key"`
+	Metadata  []byte             `json:"metadata"`
+	CreatedAt pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt pgtype.Timestamptz `json:"deleted_at"`
+}
+
+// Tracks which modules are enabled/disabled for each tenant based on subscription plan. Auto-synced when subscription changes.
+type TenantModuleAccess struct {
+	ID       uuid.UUID `json:"id"`
+	TenantID uuid.UUID `json:"tenant_id"`
+	// Module identifier: students, attendance, finance, transport, hostel, online_classes, api_access, etc.
+	ModuleName string `json:"module_name"`
+	// True if module is active in tenant subscription; False if not included in plan or disabled
+	IsEnabled  bool               `json:"is_enabled"`
+	EnabledAt  pgtype.Timestamptz `json:"enabled_at"`
+	DisabledAt pgtype.Timestamptz `json:"disabled_at"`
+	CreatedAt  pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt  pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Per-tenant configuration; one row per tenant
+type TenantSetting struct {
+	ID                 uuid.UUID          `json:"id"`
+	TenantID           uuid.UUID          `json:"tenant_id"`
+	SessionTimeoutMin  int32              `json:"session_timeout_min"`
+	MaxUsers           *int32             `json:"max_users"`
+	MaxStudents        *int32             `json:"max_students"`
+	AcademicYearFormat *string            `json:"academic_year_format"`
+	DateFormat         *string            `json:"date_format"`
+	CurrencyCode       *string            `json:"currency_code"`
+	GradingSystem      *string            `json:"grading_system"`
+	AttendanceMode     *string            `json:"attendance_mode"`
+	SmsGateway         *string            `json:"sms_gateway"`
+	EmailProvider      *string            `json:"email_provider"`
+	FeaturesEnabled    []byte             `json:"features_enabled"`
+	Theme              []byte             `json:"theme"`
+	CreatedAt          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt          pgtype.Timestamptz `json:"updated_at"`
+}
+
+// Weekly recurring class schedule; one row per class-section-day-period
 type Timetable struct {
-	TimetableID    uuid.UUID        `json:"timetable_id"`
-	SectionID      uuid.UUID        `json:"section_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	ClassLevelID   uuid.UUID        `json:"class_level_id"`
-	TimetableName  pgtype.Text      `json:"timetable_name"`
-	IsActive       pgtype.Bool      `json:"is_active"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
-}
-
-type TimetableEntry struct {
-	EntryID      uuid.UUID        `json:"entry_id"`
-	TimetableID  uuid.UUID        `json:"timetable_id"`
-	DayOfWeek    pgtype.Int4      `json:"day_of_week"`
-	PeriodNumber pgtype.Int4      `json:"period_number"`
-	StartTime    pgtype.Time      `json:"start_time"`
-	EndTime      pgtype.Time      `json:"end_time"`
-	SubjectID    uuid.UUID        `json:"subject_id"`
-	StaffID      pgtype.UUID      `json:"staff_id"`
-	RoomNumber   pgtype.Text      `json:"room_number"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	ID             uuid.UUID          `json:"id"`
+	TenantID       uuid.UUID          `json:"tenant_id"`
+	ClassID        uuid.UUID          `json:"class_id"`
+	SectionID      pgtype.UUID        `json:"section_id"`
+	AcademicYearID uuid.UUID          `json:"academic_year_id"`
+	DayOfWeek      DayOfWeek          `json:"day_of_week"`
+	PeriodID       uuid.UUID          `json:"period_id"`
+	SubjectID      pgtype.UUID        `json:"subject_id"`
+	TeacherID      pgtype.UUID        `json:"teacher_id"`
+	RoomNumber     *string            `json:"room_number"`
+	IsActive       bool               `json:"is_active"`
+	CreatedAt      pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt      pgtype.Timestamptz `json:"updated_at"`
 }
 
 type TransportFee struct {
-	TransportFeeID uuid.UUID        `json:"transport_fee_id"`
-	RouteID        uuid.UUID        `json:"route_id"`
-	AcademicYearID uuid.UUID        `json:"academic_year_id"`
-	FeeAmount      pgtype.Numeric   `json:"fee_amount"`
-	IsActive       pgtype.Bool      `json:"is_active"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+	ID                       uuid.UUID          `json:"id"`
+	StudentRouteAllocationID uuid.UUID          `json:"student_route_allocation_id"`
+	TenantID                 uuid.UUID          `json:"tenant_id"`
+	Month                    int16              `json:"month"`
+	Year                     int16              `json:"year"`
+	Amount                   pgtype.Numeric     `json:"amount"`
+	PaidStatus               PaymentStatus      `json:"paid_status"`
+	PaymentDate              pgtype.Date        `json:"payment_date"`
+	PaymentMode              *PaymentMode       `json:"payment_mode"`
+	ReceiptNumber            *string            `json:"receipt_number"`
+	CreatedAt                pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                pgtype.Timestamptz `json:"updated_at"`
 }
 
 type TransportRoute struct {
-	RouteID           uuid.UUID        `json:"route_id"`
-	OrgID             uuid.UUID        `json:"org_id"`
-	RouteName         string           `json:"route_name"`
-	RouteCode         string           `json:"route_code"`
-	StartLocation     pgtype.Text      `json:"start_location"`
-	EndLocation       pgtype.Text      `json:"end_location"`
-	TotalStops        pgtype.Int4      `json:"total_stops"`
-	EstimatedDuration pgtype.Int4      `json:"estimated_duration"`
-	RouteMap          []byte           `json:"route_map"`
-	IsActive          pgtype.Bool      `json:"is_active"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	RouteName        string             `json:"route_name"`
+	RouteCode        *string            `json:"route_code"`
+	StartPoint       string             `json:"start_point"`
+	EndPoint         string             `json:"end_point"`
+	DistanceKm       pgtype.Numeric     `json:"distance_km"`
+	EstimatedTimeMin *int32             `json:"estimated_time_min"`
+	Stops            []byte             `json:"stops"`
+	IsActive         bool               `json:"is_active"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt        pgtype.Timestamptz `json:"updated_at"`
 }
 
-type TransportStop struct {
-	StopID       uuid.UUID        `json:"stop_id"`
-	RouteID      uuid.UUID        `json:"route_id"`
-	StopName     pgtype.Text      `json:"stop_name"`
-	StopSequence pgtype.Int4      `json:"stop_sequence"`
-	Latitude     pgtype.Numeric   `json:"latitude"`
-	Longitude    pgtype.Numeric   `json:"longitude"`
-	StopTime     pgtype.Time      `json:"stop_time"`
-	CreatedAt    pgtype.Timestamp `json:"created_at"`
-}
-
+// All platform and tenant users. Created via offline import (CSV/Excel), not self-registration.
 type User struct {
-	UserID            uuid.UUID        `json:"user_id"`
-	OrgID             uuid.UUID        `json:"org_id"`
-	Username          string           `json:"username"`
-	Email             string           `json:"email"`
-	PasswordHash      string           `json:"password_hash"`
-	FirstName         string           `json:"first_name"`
-	LastName          string           `json:"last_name"`
-	PhoneNumber       pgtype.Text      `json:"phone_number"`
-	DateOfBirth       pgtype.Date      `json:"date_of_birth"`
-	Gender            pgtype.Text      `json:"gender"`
-	Address           pgtype.Text      `json:"address"`
-	City              pgtype.Text      `json:"city"`
-	State             pgtype.Text      `json:"state"`
-	Country           pgtype.Text      `json:"country"`
-	PostalCode        pgtype.Text      `json:"postal_code"`
-	ProfilePictureUrl pgtype.Text      `json:"profile_picture_url"`
-	Status            pgtype.Text      `json:"status"`
-	CreatedAt         pgtype.Timestamp `json:"created_at"`
-	UpdatedAt         pgtype.Timestamp `json:"updated_at"`
-	LastLogin         pgtype.Timestamp `json:"last_login"`
+	ID uuid.UUID `json:"id"`
+	// NULL for platform-level super admins; otherwise the school this user belongs to
+	TenantID          pgtype.UUID        `json:"tenant_id"`
+	Username          string             `json:"username"`
+	Email             *string            `json:"email"`
+	PasswordHash      string             `json:"password_hash"`
+	FirstName         string             `json:"first_name"`
+	LastName          *string            `json:"last_name"`
+	Phone             *string            `json:"phone"`
+	AvatarUrl         *string            `json:"avatar_url"`
+	Status            UserStatus         `json:"status"`
+	IsSuperAdmin      bool               `json:"is_super_admin"`
+	EmailVerifiedAt   pgtype.Timestamptz `json:"email_verified_at"`
+	LastLoginAt       pgtype.Timestamptz `json:"last_login_at"`
+	PasswordChangedAt pgtype.Timestamptz `json:"password_changed_at"`
+	// Timestamp from the offline source (CSV/Excel row creation time)
+	CreatedOfflineAt                   pgtype.Timestamptz `json:"created_offline_at"`
+	ImportedBy                         pgtype.UUID        `json:"imported_by"`
+	ImportBatchID                      *string            `json:"import_batch_id"`
+	Metadata                           []byte             `json:"metadata"`
+	CreatedAt                          pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt                          pgtype.Timestamptz `json:"updated_at"`
+	DeletedAt                          pgtype.Timestamptz `json:"deleted_at"`
+	UserType                           UserType           `json:"user_type"`
+	IdentityProvider                   string             `json:"identity_provider"`
+	IdentityProviderID                 pgtype.UUID        `json:"identity_provider_id"`
+	OauthID                            *string            `json:"oauth_id"`
+	UserClass                          int32              `json:"user_class"`
+	IsLocked                           bool               `json:"is_locked"`
+	IsDisabled                         bool               `json:"is_disabled"`
+	LockedAt                           pgtype.Timestamptz `json:"locked_at"`
+	FailedLoginAttempts                int32              `json:"failed_login_attempts"`
+	LastFailedLoginAt                  pgtype.Timestamptz `json:"last_failed_login_at"`
+	FailedLoginTimestamps              []byte             `json:"failed_login_timestamps"`
+	FailedLoginAttemptsSinceLastSignin int32              `json:"failed_login_attempts_since_last_signin"`
+	ForcePasswordReset                 bool               `json:"force_password_reset"`
+	PreviousLoginAt                    pgtype.Timestamptz `json:"previous_login_at"`
+	RoleUpdatedAt                      pgtype.Timestamptz `json:"role_updated_at"`
+	FriendlyName                       *string            `json:"friendly_name"`
+	FormalName                         *string            `json:"formal_name"`
+	Preferences                        []byte             `json:"preferences"`
+	LogEvents                          []byte             `json:"log_events"`
+}
+
+// Per-user permission overrides beyond what the assigned roles grant
+type UserPermission struct {
+	ID           uuid.UUID          `json:"id"`
+	UserID       uuid.UUID          `json:"user_id"`
+	PermissionID uuid.UUID          `json:"permission_id"`
+	IsGranted    bool               `json:"is_granted"`
+	AssignedBy   pgtype.UUID        `json:"assigned_by"`
+	AssignedAt   pgtype.Timestamptz `json:"assigned_at"`
 }
 
 type UserRole struct {
-	UserID     uuid.UUID        `json:"user_id"`
-	RoleID     int32            `json:"role_id"`
-	OrgID      uuid.UUID        `json:"org_id"`
-	AssignedAt pgtype.Timestamp `json:"assigned_at"`
+	ID         uuid.UUID          `json:"id"`
+	UserID     uuid.UUID          `json:"user_id"`
+	RoleID     uuid.UUID          `json:"role_id"`
+	AssignedBy pgtype.UUID        `json:"assigned_by"`
+	AssignedAt pgtype.Timestamptz `json:"assigned_at"`
+}
+
+type VDailyAttendanceDashboard struct {
+	ClassID        uuid.UUID      `json:"class_id"`
+	TenantID       uuid.UUID      `json:"tenant_id"`
+	ClassName      string         `json:"class_name"`
+	Date           pgtype.Date    `json:"date"`
+	TotalStudents  int64          `json:"total_students"`
+	Present        int64          `json:"present"`
+	Absent         int64          `json:"absent"`
+	Late           int64          `json:"late"`
+	AttendanceRate pgtype.Numeric `json:"attendance_rate"`
+}
+
+type VExamClassAnalytic struct {
+	TenantID         uuid.UUID      `json:"tenant_id"`
+	ExamID           uuid.UUID      `json:"exam_id"`
+	ExamName         string         `json:"exam_name"`
+	ClassID          uuid.UUID      `json:"class_id"`
+	ClassName        string         `json:"class_name"`
+	TotalStudents    int64          `json:"total_students"`
+	AvgPercentage    pgtype.Numeric `json:"avg_percentage"`
+	MaxPercentage    interface{}    `json:"max_percentage"`
+	MinPercentage    interface{}    `json:"min_percentage"`
+	StddevPercentage pgtype.Numeric `json:"stddev_percentage"`
+	PassCount        int64          `json:"pass_count"`
+	FailCount        int64          `json:"fail_count"`
+	PassPercentage   pgtype.Numeric `json:"pass_percentage"`
+}
+
+type VFeeSummary struct {
+	TenantID        uuid.UUID   `json:"tenant_id"`
+	StudentID       uuid.UUID   `json:"student_id"`
+	StudentName     interface{} `json:"student_name"`
+	AdmissionNumber string      `json:"admission_number"`
+	ClassID         uuid.UUID   `json:"class_id"`
+	ClassName       string      `json:"class_name"`
+	TotalFee        int64       `json:"total_fee"`
+	TotalPaid       interface{} `json:"total_paid"`
+	Outstanding     int32       `json:"outstanding"`
+	PendingInvoices int64       `json:"pending_invoices"`
+	PaidInvoices    int64       `json:"paid_invoices"`
+}
+
+type VHostelOccupancy struct {
+	TenantID            uuid.UUID      `json:"tenant_id"`
+	HostelID            uuid.UUID      `json:"hostel_id"`
+	HostelName          string         `json:"hostel_name"`
+	Type                *string        `json:"type"`
+	TotalRooms          int64          `json:"total_rooms"`
+	TotalCapacity       int64          `json:"total_capacity"`
+	CurrentOccupancy    int64          `json:"current_occupancy"`
+	AvailableBeds       int32          `json:"available_beds"`
+	OccupancyPercentage pgtype.Numeric `json:"occupancy_percentage"`
+}
+
+type VLibraryOverdue struct {
+	TenantID        uuid.UUID   `json:"tenant_id"`
+	BookIssueID     uuid.UUID   `json:"book_issue_id"`
+	BookTitle       string      `json:"book_title"`
+	Author          *string     `json:"author"`
+	StudentID       pgtype.UUID `json:"student_id"`
+	BorrowerName    interface{} `json:"borrower_name"`
+	AdmissionNumber *string     `json:"admission_number"`
+	IssueDate       pgtype.Date `json:"issue_date"`
+	DueDate         pgtype.Date `json:"due_date"`
+	OverdueDays     int32       `json:"overdue_days"`
+	EstimatedFine   int32       `json:"estimated_fine"`
+}
+
+type VPayrollMonthlySummary struct {
+	TenantID        uuid.UUID `json:"tenant_id"`
+	Year            int16     `json:"year"`
+	Month           int16     `json:"month"`
+	StaffCount      int64     `json:"staff_count"`
+	TotalGross      int64     `json:"total_gross"`
+	TotalDeductions int64     `json:"total_deductions"`
+	TotalNet        int64     `json:"total_net"`
+	PaidCount       int64     `json:"paid_count"`
+	DraftCount      int64     `json:"draft_count"`
+}
+
+type VStudentAttendanceSummary struct {
+	TenantID             uuid.UUID      `json:"tenant_id"`
+	StudentID            uuid.UUID      `json:"student_id"`
+	StudentName          interface{}    `json:"student_name"`
+	AdmissionNumber      string         `json:"admission_number"`
+	ClassID              uuid.UUID      `json:"class_id"`
+	ClassName            string         `json:"class_name"`
+	Year                 int32          `json:"year"`
+	Month                int32          `json:"month"`
+	PresentDays          int64          `json:"present_days"`
+	AbsentDays           int64          `json:"absent_days"`
+	LateDays             int64          `json:"late_days"`
+	HalfDays             int64          `json:"half_days"`
+	TotalDays            int64          `json:"total_days"`
+	AttendancePercentage pgtype.Numeric `json:"attendance_percentage"`
+}
+
+type VTeacherWorkload struct {
+	TenantID            uuid.UUID   `json:"tenant_id"`
+	TeacherID           pgtype.UUID `json:"teacher_id"`
+	TeacherName         interface{} `json:"teacher_name"`
+	TotalPeriodsPerWeek int64       `json:"total_periods_per_week"`
+	ClassesAssigned     int64       `json:"classes_assigned"`
+	SubjectsAssigned    int64       `json:"subjects_assigned"`
+	ActiveDays          interface{} `json:"active_days"`
+}
+
+type VTransportUtilization struct {
+	TenantID              uuid.UUID      `json:"tenant_id"`
+	RouteID               uuid.UUID      `json:"route_id"`
+	RouteName             string         `json:"route_name"`
+	VehicleNumber         *string        `json:"vehicle_number"`
+	VehicleCapacity       *int16         `json:"vehicle_capacity"`
+	ActiveStudents        int64          `json:"active_students"`
+	UtilizationPercentage pgtype.Numeric `json:"utilization_percentage"`
 }
 
 type Vehicle struct {
-	VehicleID                  uuid.UUID        `json:"vehicle_id"`
-	OrgID                      uuid.UUID        `json:"org_id"`
-	VehicleNumber              string           `json:"vehicle_number"`
-	VehicleType                pgtype.Text      `json:"vehicle_type"`
-	VehicleModel               pgtype.Text      `json:"vehicle_model"`
-	RegistrationNumber         pgtype.Text      `json:"registration_number"`
-	VehicleCapacity            pgtype.Int4      `json:"vehicle_capacity"`
-	PurchaseDate               pgtype.Date      `json:"purchase_date"`
-	LastMaintenanceDate        pgtype.Date      `json:"last_maintenance_date"`
-	NextMaintenanceDate        pgtype.Date      `json:"next_maintenance_date"`
-	InsuranceExpiry            pgtype.Date      `json:"insurance_expiry"`
-	PollutionCertificateExpiry pgtype.Date      `json:"pollution_certificate_expiry"`
-	VehicleStatus              pgtype.Text      `json:"vehicle_status"`
-	GpsDeviceID                pgtype.Text      `json:"gps_device_id"`
-	CreatedAt                  pgtype.Timestamp `json:"created_at"`
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	VehicleNumber   string             `json:"vehicle_number"`
+	VehicleType     *string            `json:"vehicle_type"`
+	Make            *string            `json:"make"`
+	Model           *string            `json:"model"`
+	Year            *int16             `json:"year"`
+	Capacity        int16              `json:"capacity"`
+	DriverID        pgtype.UUID        `json:"driver_id"`
+	RouteID         pgtype.UUID        `json:"route_id"`
+	InsuranceNumber *string            `json:"insurance_number"`
+	InsuranceExpiry pgtype.Date        `json:"insurance_expiry"`
+	FitnessExpiry   pgtype.Date        `json:"fitness_expiry"`
+	GpsDeviceID     *string            `json:"gps_device_id"`
+	Status          VehicleStatus      `json:"status"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
 }
 
-type VehicleDriver struct {
-	AssignmentID uuid.UUID   `json:"assignment_id"`
-	VehicleID    uuid.UUID   `json:"vehicle_id"`
-	DriverID     uuid.UUID   `json:"driver_id"`
-	AssignedDate pgtype.Date `json:"assigned_date"`
-	IsActive     pgtype.Bool `json:"is_active"`
+type VehicleMaintenanceLog struct {
+	ID                  uuid.UUID          `json:"id"`
+	VehicleID           uuid.UUID          `json:"vehicle_id"`
+	TenantID            uuid.UUID          `json:"tenant_id"`
+	MaintenanceDate     pgtype.Date        `json:"maintenance_date"`
+	Description         string             `json:"description"`
+	Cost                pgtype.Numeric     `json:"cost"`
+	NextMaintenanceDate pgtype.Date        `json:"next_maintenance_date"`
+	PerformedBy         *string            `json:"performed_by"`
+	CreatedAt           pgtype.Timestamptz `json:"created_at"`
 }
 
-type VehicleGpsTracking struct {
-	TrackingID        uuid.UUID        `json:"tracking_id"`
-	VehicleID         uuid.UUID        `json:"vehicle_id"`
-	Latitude          pgtype.Numeric   `json:"latitude"`
-	Longitude         pgtype.Numeric   `json:"longitude"`
-	Speed             pgtype.Numeric   `json:"speed"`
-	Heading           pgtype.Int4      `json:"heading"`
-	TrackingTimestamp pgtype.Timestamp `json:"tracking_timestamp"`
+type Visitor struct {
+	ID               uuid.UUID          `json:"id"`
+	TenantID         uuid.UUID          `json:"tenant_id"`
+	VisitorName      string             `json:"visitor_name"`
+	Phone            *string            `json:"phone"`
+	Email            *string            `json:"email"`
+	Company          *string            `json:"company"`
+	WhomToMeet       string             `json:"whom_to_meet"`
+	WhomToMeetUserID pgtype.UUID        `json:"whom_to_meet_user_id"`
+	Purpose          string             `json:"purpose"`
+	IDCardType       *string            `json:"id_card_type"`
+	IDCardNumber     *string            `json:"id_card_number"`
+	PhotoUrl         *string            `json:"photo_url"`
+	VisitorBadge     *string            `json:"visitor_badge"`
+	CheckInTime      pgtype.Timestamptz `json:"check_in_time"`
+	CheckOutTime     pgtype.Timestamptz `json:"check_out_time"`
+	VehicleNumber    *string            `json:"vehicle_number"`
+	ItemsCarried     *string            `json:"items_carried"`
+	Remarks          *string            `json:"remarks"`
+	ApprovedBy       pgtype.UUID        `json:"approved_by"`
+	CreatedAt        pgtype.Timestamptz `json:"created_at"`
 }
 
-type VisitorManagement struct {
-	VisitorID      uuid.UUID        `json:"visitor_id"`
-	OrgID          uuid.UUID        `json:"org_id"`
-	VisitorName    pgtype.Text      `json:"visitor_name"`
-	VisitorPhone   pgtype.Text      `json:"visitor_phone"`
-	VisitorEmail   pgtype.Text      `json:"visitor_email"`
-	PurposeOfVisit pgtype.Text      `json:"purpose_of_visit"`
-	VisitDate      pgtype.Date      `json:"visit_date"`
-	CheckInTime    pgtype.Time      `json:"check_in_time"`
-	CheckOutTime   pgtype.Time      `json:"check_out_time"`
-	HostID         pgtype.UUID      `json:"host_id"`
-	IDProofType    pgtype.Text      `json:"id_proof_type"`
-	IDProofNumber  pgtype.Text      `json:"id_proof_number"`
-	CreatedAt      pgtype.Timestamp `json:"created_at"`
+type Webhook struct {
+	ID              uuid.UUID          `json:"id"`
+	TenantID        uuid.UUID          `json:"tenant_id"`
+	Name            string             `json:"name"`
+	Url             string             `json:"url"`
+	Secret          *string            `json:"secret"`
+	Events          []byte             `json:"events"`
+	IsActive        bool               `json:"is_active"`
+	LastTriggeredAt pgtype.Timestamptz `json:"last_triggered_at"`
+	FailureCount    int32              `json:"failure_count"`
+	CreatedAt       pgtype.Timestamptz `json:"created_at"`
+	UpdatedAt       pgtype.Timestamptz `json:"updated_at"`
+}
+
+type WebhookDelivery struct {
+	ID             uuid.UUID          `json:"id"`
+	WebhookID      uuid.UUID          `json:"webhook_id"`
+	EventType      string             `json:"event_type"`
+	Payload        []byte             `json:"payload"`
+	ResponseStatus *int32             `json:"response_status"`
+	ResponseBody   *string            `json:"response_body"`
+	DurationMs     *int32             `json:"duration_ms"`
+	Success        bool               `json:"success"`
+	AttemptedAt    pgtype.Timestamptz `json:"attempted_at"`
 }

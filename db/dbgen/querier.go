@@ -8,17 +8,82 @@ import (
 	"context"
 
 	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5/pgtype"
 )
 
 type Querier interface {
-	DeleteClass(ctx context.Context, classLevelID uuid.UUID) error
-	DeleteOrganization(ctx context.Context, orgID uuid.UUID) error
-	GetClassByID(ctx context.Context, classLevelID uuid.UUID) (ClassLevel, error)
-	GetOrganizationByID(ctx context.Context, orgID uuid.UUID) (Organization, error)
-	ReplaceClass(ctx context.Context, arg ReplaceClassParams) (ClassLevel, error)
-	ReplaceOrganization(ctx context.Context, arg ReplaceOrganizationParams) (Organization, error)
-	UpsertClass(ctx context.Context, arg UpsertClassParams) (ClassLevel, error)
-	UpsertOrganization(ctx context.Context, arg UpsertOrganizationParams) (Organization, error)
+	CallSeedTenantRoles(ctx context.Context, pTenantID uuid.UUID) error
+	CountSubscriptionPlans(ctx context.Context) (int64, error)
+	// ============================================================================
+	// ROLES & PERMISSIONS (automatic seeding)
+	// ============================================================================
+	CountTenantRoles(ctx context.Context, tenantID pgtype.UUID) (int64, error)
+	// ============================================================================
+	// TENANT & SUBSCRIPTION
+	// ============================================================================
+	CreateTenant(ctx context.Context, arg CreateTenantParams) (uuid.UUID, error)
+	// ============================================================================
+	// ACADEMIC YEARS
+	// Unique: (tenant_id, name)
+	// ============================================================================
+	GetAcademicYearByName(ctx context.Context, arg GetAcademicYearByNameParams) (uuid.UUID, error)
+	GetClassByGradeAndYear(ctx context.Context, arg GetClassByGradeAndYearParams) (uuid.UUID, error)
+	// ============================================================================
+	// CLASSES
+	// Unique: (tenant_id, name) – we assume class names are unique per tenant.
+	// ============================================================================
+	GetClassByName(ctx context.Context, arg GetClassByNameParams) (uuid.UUID, error)
+	// ============================================================================
+	// CLASS SUBJECTS
+	// Unique: (class_id, subject_id)
+	// ============================================================================
+	GetClassSubjectByClassAndSubject(ctx context.Context, arg GetClassSubjectByClassAndSubjectParams) (uuid.UUID, error)
+	// ============================================================================
+	// DEPARTMENTS
+	// Unique: (tenant_id, name)
+	// ============================================================================
+	GetDepartmentByName(ctx context.Context, arg GetDepartmentByNameParams) (uuid.UUID, error)
+	// ============================================================================
+	// FEE STRUCTURES
+	// Unique: (tenant_id, academic_year_id, class_id, fee_type, name)
+	// ============================================================================
+	GetFeeStructureByNaturalKey(ctx context.Context, arg GetFeeStructureByNaturalKeyParams) (uuid.UUID, error)
+	// ============================================================================
+	// GRADES
+	// Unique: (tenant_id, name)
+	// ============================================================================
+	GetGradeByName(ctx context.Context, arg GetGradeByNameParams) (uuid.UUID, error)
+	// ============================================================================
+	// SECTIONS
+	// Unique: (class_id, name). For upsert we need class_id.
+	// ============================================================================
+	GetSectionByClassAndName(ctx context.Context, arg GetSectionByClassAndNameParams) (uuid.UUID, error)
+	// ============================================================================
+	// SUBJECTS
+	// Unique: (tenant_id, code)
+	// ============================================================================
+	GetSubjectByCode(ctx context.Context, arg GetSubjectByCodeParams) (uuid.UUID, error)
+	GetSubscriptionPlanIDByName(ctx context.Context, arg GetSubscriptionPlanIDByNameParams) (uuid.UUID, error)
+	// ============================================================================
+	// TENANT SETTINGS
+	// Unique: tenant_id
+	// ============================================================================
+	GetTenantSetting(ctx context.Context, tenantID uuid.UUID) (uuid.UUID, error)
+	// ============================================================================
+	// USERS (teacher placeholders)
+	// Unique: (tenant_id, email)
+	// ============================================================================
+	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (uuid.UUID, error)
+	UpsertAcademicYear(ctx context.Context, arg UpsertAcademicYearParams) (uuid.UUID, error)
+	UpsertClass(ctx context.Context, arg UpsertClassParams) (uuid.UUID, error)
+	UpsertClassSubject(ctx context.Context, arg UpsertClassSubjectParams) (uuid.UUID, error)
+	UpsertDepartment(ctx context.Context, arg UpsertDepartmentParams) (uuid.UUID, error)
+	UpsertFeeStructure(ctx context.Context, arg UpsertFeeStructureParams) (uuid.UUID, error)
+	UpsertGrade(ctx context.Context, arg UpsertGradeParams) (uuid.UUID, error)
+	UpsertPlaceholderUser(ctx context.Context, arg UpsertPlaceholderUserParams) (uuid.UUID, error)
+	UpsertSection(ctx context.Context, arg UpsertSectionParams) (uuid.UUID, error)
+	UpsertSubject(ctx context.Context, arg UpsertSubjectParams) (uuid.UUID, error)
+	UpsertTenantSetting(ctx context.Context, arg UpsertTenantSettingParams) (uuid.UUID, error)
 }
 
 var _ Querier = (*Queries)(nil)
