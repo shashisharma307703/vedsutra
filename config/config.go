@@ -10,6 +10,7 @@ type Config struct {
 	Server   ServerConfig
 	Database PoolConfig
 	Log      LogConfig
+	Auth     AuthConfig
 }
 
 type ServerConfig struct {
@@ -40,6 +41,39 @@ type PoolConfig struct {
 	ConnectionTimeout time.Duration `env:"APP_CONNECTION_TIMEOUT" default:"10s"`
 }
 
+type AuthConfig struct {
+	// JWT configuration
+	JWTSecret              string        `env:"JWT_SECRET"`
+	JWTAccessTokenExpiry   time.Duration `env:"JWT_ACCESS_TOKEN_EXPIRY" default:"15m"`
+	JWTRefreshTokenExpiry  time.Duration `env:"JWT_REFRESH_TOKEN_EXPIRY" default:"168h"`
+	JWTAlgorithm           string        `env:"JWT_ALGORITHM" default:"HS256"`
+
+	// OIDC configuration
+	OIDCDiscoveryURL       string        `env:"OIDC_DISCOVERY_URL"`
+	OIDCClientID           string        `env:"OIDC_CLIENT_ID"`
+	OIDCClientSecret       string        `env:"OIDC_CLIENT_SECRET"`
+	OIDCScopes             string        `env:"OIDC_SCOPES" default:"openid profile email roles"`
+	OIDCDiscoveryCacheTTL  time.Duration `env:"OIDC_DISCOVERY_CACHE_TTL" default:"1h"`
+
+	// Local auth configuration
+	LocalAuthEnabled       bool   `env:"LOCAL_AUTH_ENABLED" default:"true"`
+	PasswordMinLength      int    `env:"PASSWORD_MIN_LENGTH" default:"8"`
+	BcryptCost             int    `env:"BCRYPT_COST" default:"10"`
+
+	// Refresh token configuration
+	RefreshTokenRotation   bool          `env:"REFRESH_TOKEN_ROTATION" default:"true"`
+	RefreshTokenMaxAge     time.Duration `env:"REFRESH_TOKEN_MAX_AGE" default:"720h"`
+
+	// Security configuration
+	AllowedOrigins         string `env:"ALLOWED_ORIGINS" default:"localhost:3000"`
+	CookieSecure           bool   `env:"COOKIE_SECURE" default:"false"`
+	CookieSameSite         string `env:"COOKIE_SAME_SITE" default:"Strict"`
+
+	// Session configuration
+	SessionTimeout         time.Duration `env:"SESSION_TIMEOUT" default:"24h"`
+	SessionCookieName      string        `env:"SESSION_COOKIE_NAME" default:"vedsutra_session"`
+}
+
 func Load() *Config {
 	return &Config{
 		Server: ServerConfig{
@@ -65,6 +99,27 @@ func Load() *Config {
 		Log: LogConfig{
 			Level:  getEnv("LOG_LEVEL", "info"),
 			Format: getEnv("LOG_FORMAT", "json"),
+		},
+		Auth: AuthConfig{
+			JWTSecret:             getEnv("JWT_SECRET", ""),
+			JWTAccessTokenExpiry:  getEnvDuration("JWT_ACCESS_TOKEN_EXPIRY", 15*time.Minute),
+			JWTRefreshTokenExpiry: getEnvDuration("JWT_REFRESH_TOKEN_EXPIRY", 7*24*time.Hour),
+			JWTAlgorithm:          getEnv("JWT_ALGORITHM", "HS256"),
+			OIDCDiscoveryURL:      getEnv("OIDC_DISCOVERY_URL", ""),
+			OIDCClientID:          getEnv("OIDC_CLIENT_ID", ""),
+			OIDCClientSecret:      getEnv("OIDC_CLIENT_SECRET", ""),
+			OIDCScopes:            getEnv("OIDC_SCOPES", "openid profile email roles"),
+			OIDCDiscoveryCacheTTL: getEnvDuration("OIDC_DISCOVERY_CACHE_TTL", 1*time.Hour),
+			LocalAuthEnabled:      getEnvBool("LOCAL_AUTH_ENABLED", true),
+			PasswordMinLength:     getEnvInt("PASSWORD_MIN_LENGTH", 8),
+			BcryptCost:            getEnvInt("BCRYPT_COST", 10),
+			RefreshTokenRotation:  getEnvBool("REFRESH_TOKEN_ROTATION", true),
+			RefreshTokenMaxAge:    getEnvDuration("REFRESH_TOKEN_MAX_AGE", 30*24*time.Hour),
+			AllowedOrigins:        getEnv("ALLOWED_ORIGINS", "localhost:3000"),
+			CookieSecure:          getEnvBool("COOKIE_SECURE", false),
+			CookieSameSite:        getEnv("COOKIE_SAME_SITE", "Strict"),
+			SessionTimeout:        getEnvDuration("SESSION_TIMEOUT", 24*time.Hour),
+			SessionCookieName:     getEnv("SESSION_COOKIE_NAME", "vedsutra_session"),
 		},
 	}
 }
@@ -94,8 +149,18 @@ func GetEnvDuration(key string, defaultValue time.Duration) time.Duration {
 	return defaultValue
 }
 
+func GetEnvBool(key string, defaultValue bool) bool {
+	if v := os.Getenv(key); v != "" {
+		return v == "true" || v == "1" || v == "yes"
+	}
+	return defaultValue
+}
+
 func getEnv(k, d string) string     { return GetEnv(k, d) }
 func getEnvInt(k string, d int) int { return GetEnvInt(k, d) }
 func getEnvDuration(k string, d time.Duration) time.Duration {
 	return GetEnvDuration(k, d)
+}
+func getEnvBool(k string, d bool) bool {
+	return GetEnvBool(k, d)
 }
