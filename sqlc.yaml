@@ -1,7 +1,7 @@
 version: "2"
 sql:
   - engine: "postgresql"
-    schema: "db/vedsutra.sql"
+    schema: "db/migrations/"
     queries: "db/queries/"
     gen:
       go:
@@ -16,8 +16,10 @@ sql:
         overrides:
           - db_type: "uuid"
             go_type: "github.com/google/uuid.UUID"
+            nullable: false
           - db_type: "pg_catalog.uuid"
             go_type: "github.com/google/uuid.UUID"
+            nullable: false
           - column: "students.blood_group"
             go_type: "github.com/shashisharma307703/vedantam/db/types.BloodGroup"
           - column: "drivers.blood_group"

@@ -1749,6 +1749,29 @@ type AuditLog struct {
 	DeletedAt     pgtype.Timestamptz `json:"deleted_at"`
 }
 
+type AuthProvider struct {
+	ID           int64            `json:"id"`
+	TenantID     uuid.UUID        `json:"tenant_id"`
+	ProviderType string           `json:"provider_type"`
+	Config       []byte           `json:"config"`
+	IsActive     bool             `json:"is_active"`
+	CreatedAt    pgtype.Timestamp `json:"created_at"`
+	UpdatedAt    pgtype.Timestamp `json:"updated_at"`
+}
+
+type AuthSession struct {
+	ID               int64            `json:"id"`
+	UserID           uuid.UUID        `json:"user_id"`
+	TenantID         uuid.UUID        `json:"tenant_id"`
+	RefreshTokenHash string           `json:"refresh_token_hash"`
+	ExpiresAt        pgtype.Timestamp `json:"expires_at"`
+	CreatedAt        pgtype.Timestamp `json:"created_at"`
+	LastUsedAt       pgtype.Timestamp `json:"last_used_at"`
+	IpAddress        *string          `json:"ip_address"`
+	UserAgent        *string          `json:"user_agent"`
+	IsRevoked        bool             `json:"is_revoked"`
+}
+
 // Raw biometric scan events; processed into student/teacher attendance
 type BiometricAttendance struct {
 	ID                uuid.UUID          `json:"id"`
@@ -2513,6 +2536,14 @@ type NotificationLog struct {
 	SentAt            pgtype.Timestamptz  `json:"sent_at"`
 	DeliveredAt       pgtype.Timestamptz  `json:"delivered_at"`
 	CreatedAt         pgtype.Timestamptz  `json:"created_at"`
+}
+
+type OidcDiscoveryCache struct {
+	ID           int64            `json:"id"`
+	Issuer       string           `json:"issuer"`
+	DiscoveryDoc []byte           `json:"discovery_doc"`
+	CachedAt     pgtype.Timestamp `json:"cached_at"`
+	ExpiresAt    pgtype.Timestamp `json:"expires_at"`
 }
 
 type OnlineClass struct {

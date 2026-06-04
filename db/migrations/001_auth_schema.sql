@@ -4,8 +4,8 @@
 -- auth_sessions table: Store refresh token sessions
 CREATE TABLE IF NOT EXISTS auth_sessions (
     id BIGSERIAL PRIMARY KEY,
-    user_id BIGINT NOT NULL,
-    tenant_id BIGINT NOT NULL,
+    user_id UUID NOT NULL,   -- Changed from BIGINT to UUID
+    tenant_id UUID NOT NULL,
     refresh_token_hash VARCHAR(255) NOT NULL UNIQUE,
     expires_at TIMESTAMP NOT NULL,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
@@ -25,13 +25,14 @@ CREATE INDEX IF NOT EXISTS idx_auth_sessions_expires_at ON auth_sessions(expires
 -- auth_providers table: Configure authentication providers per tenant
 CREATE TABLE IF NOT EXISTS auth_providers (
     id BIGSERIAL PRIMARY KEY,
-    tenant_id BIGINT NOT NULL,
+    tenant_id UUID NOT NULL,
     provider_type VARCHAR(50) NOT NULL,
     config JSONB NOT NULL DEFAULT '{}',
     is_active BOOLEAN NOT NULL DEFAULT TRUE,
     created_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
     FOREIGN KEY (tenant_id) REFERENCES tenants(id) ON DELETE CASCADE,
+    UNIQUE(created_at),
     UNIQUE(tenant_id, provider_type)
 );
 
