@@ -1,0 +1,6 @@
+academic_year_name,class_name,fee_type,name,amount,frequency,due_day,late_fee_per_day,is_mandatory,description
+2025-2026,Grade 10 - 2025,tuition,Tuition Fee,5000.00,monthly,5,10.00,true,Monthly tuition
+2025-2026,Grade 10 - 2025,library,Library Fee,500.00,quarterly,1,5.00,true,Quarterly library contribution
+2025-2026,Grade 10 - 2025,sports,Sports Fee,1000.00,annual,15,0,false,Optional sports fee
+2025-2026,Grade 11 - 2025,tuition,Tuition Fee,6000.00,monthly,5,10.00,true
+2025-2026,Grade 12 - 2025,tuition,Tuition Fee,6000.00,monthly,5,10.00,true

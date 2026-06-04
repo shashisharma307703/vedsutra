@@ -1,0 +1,7 @@
+class_name,section_name,teacher_email,max_students
+Grade 10 - 2025,A,teacher.math@school.com,25
+Grade 10 - 2025,B,teacher.science@school.com,20
+Grade 11 - 2025,A,teacher.english@school.com,25
+Grade 11 - 2025,B,teacher.hindi@school.com,25
+Grade 12 - 2025,A,teacher.history@school.com,25
+Grade 12 - 2025,B,teacher.geography@school.com,25

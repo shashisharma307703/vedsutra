@@ -1,0 +1,17 @@
+{
+  "name": "Riverside International School",
+  "subdomain": "riverside",
+  "slug": "riverside",
+  "timezone": "Asia/Kolkata",
+  "country": "India",
+  "state": "Maharashtra",
+  "city": "Pune",
+  "address": "Plot No. 7, Koregaon Park, Pune",
+  "pincode": "411001",
+  "contact_email": "admin@riverside.edu",
+  "contact_phone": "+91 9822012345",
+  "website": "https://riverside.edu",
+  "subscription_plan": "Free",
+  "billing_period": "yearly",
+  "trial_days": 45
+}

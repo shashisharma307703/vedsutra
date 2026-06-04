@@ -1,0 +1,9 @@
+class_name,subject_code,teacher_email,periods_per_week
+Grade 10 - 2025,MAT101,teacher.math@school.com,6
+Grade 10 - 2025,PHY101,teacher.science@school.com,5
+Grade 10 - 2025,CHE101,teacher.science@school.com,4
+Grade 10 - 2025,BIO101,teacher.science@school.com,4
+Grade 10 - 2025,ENG101,teacher.english@school.com,5
+Grade 10 - 2025,HIN101,teacher.hindi@school.com,5
+Grade 11 - 2025,ACC101,teacher.commerce@school.com,6
+Grade 11 - 2025,BST101,teacher.commerce@school.com,6

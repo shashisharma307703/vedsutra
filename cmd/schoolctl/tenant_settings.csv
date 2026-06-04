@@ -1,0 +1,2 @@
+session_timeout_min,max_users,max_students,academic_year_format,date_format,currency_code,grading_system,attendance_mode,sms_gateway,email_provider,features_enabled,theme
+60,200,500,YYYY-YYYY,DD/MM/YYYY,INR,percentage,manual,twilio,sendgrid,"{""transport"":true}","{""primary_color"":""#1976D2""}"
