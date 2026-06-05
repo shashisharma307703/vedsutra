@@ -18,15 +18,19 @@ type Querier interface {
 	// ROLES & PERMISSIONS (automatic seeding)
 	// ============================================================================
 	CountTenantRoles(ctx context.Context, tenantID pgtype.UUID) (int64, error)
+	CreateAuthProvider(ctx context.Context, arg CreateAuthProviderParams) (AuthProvider, error)
 	// ============================================================================
 	// TENANT & SUBSCRIPTION
 	// ============================================================================
 	CreateTenant(ctx context.Context, arg CreateTenantParams) (uuid.UUID, error)
+	DeleteAuthProvider(ctx context.Context, id int64) error
 	// ============================================================================
 	// ACADEMIC YEARS
 	// Unique: (tenant_id, name)
 	// ============================================================================
 	GetAcademicYearByName(ctx context.Context, arg GetAcademicYearByNameParams) (uuid.UUID, error)
+	GetAuthProvider(ctx context.Context, id int64) (AuthProvider, error)
+	GetAuthProviderByTenantAndType(ctx context.Context, arg GetAuthProviderByTenantAndTypeParams) (AuthProvider, error)
 	GetClassByGradeAndYear(ctx context.Context, arg GetClassByGradeAndYearParams) (uuid.UUID, error)
 	// ============================================================================
 	// CLASSES
@@ -74,6 +78,8 @@ type Querier interface {
 	// Unique: (tenant_id, email)
 	// ============================================================================
 	GetUserByEmail(ctx context.Context, arg GetUserByEmailParams) (uuid.UUID, error)
+	ListActiveAuthProvidersByTenant(ctx context.Context, tenantID uuid.UUID) ([]AuthProvider, error)
+	UpdateAuthProvider(ctx context.Context, arg UpdateAuthProviderParams) error
 	UpsertAcademicYear(ctx context.Context, arg UpsertAcademicYearParams) (uuid.UUID, error)
 	UpsertClass(ctx context.Context, arg UpsertClassParams) (uuid.UUID, error)
 	UpsertClassSubject(ctx context.Context, arg UpsertClassSubjectParams) (uuid.UUID, error)

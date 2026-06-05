@@ -2,35 +2,50 @@ package repository
 
 import (
 	"context"
-	"database/sql"
 	"encoding/json"
 
+	"github.com/shashisharma307703/vedantam/db/dbgen"
 	"github.com/shashisharma307703/vedantam/internal/domain/auth"
 )
 
 type authProviderRepo struct {
-	db *sql.DB
+	*Repository
 }
 
-func NewAuthProviderRepository(db *sql.DB) AuthProviderRepository {
-	return &authProviderRepo{db: db}
+func NewAuthProviderRepository(repo *Repository) AuthProviderRepository {
+	return &authProviderRepo{
+		Repository: repo,
+	}
 }
 
-func (r *authProviderRepo) Create(ctx context.Context, provider *auth.AuthProvider) (*auth.AuthProvider, error) {
+func (r *authProviderRepo) Create(
+	ctx context.Context,
+	provider *auth.AuthProvider,
+) (*auth.AuthProvider, error) {
+
 	configJSON, err := json.Marshal(provider.Config)
 	if err != nil {
 		return nil, err
 	}
 
-	query := `
-		INSERT INTO auth_providers (tenant_id, provider_type, config, is_active)
-		VALUES ($1, $2, $3, $4)
-		RETURNING id, created_at, updated_at
-	`
-	err = r.db.QueryRowContext(ctx, query,
-		provider.TenantID, provider.ProviderType, configJSON, provider.IsActive,
-	).Scan(&provider.ID, &provider.CreatedAt, &provider.UpdatedAt)
-	return provider, err
+	row, err := r.Queries.CreateAuthProvider(
+		ctx,
+		dbgen.CreateAuthProviderParams{
+			TenantID:     provider.TenantID,
+			ProviderType: string(provider.ProviderType),
+			Config:       configJSON,
+			IsActive:     provider.IsActive,
+		},
+	)
+	if err != nil {
+		return nil, err
+	}
+
+	provider.ID = row.ID
+	provider.CreatedAt = row.CreatedAt.Time
+	provider.UpdatedAt = row.UpdatedAt.Time
+
+	return provider, nil
 }
 
 func (r *authProviderRepo) GetByID(ctx context.Context, id int64) (*auth.AuthProvider, error) {
